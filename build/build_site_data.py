@@ -153,6 +153,12 @@ def main():
     for path in sorted((ROOT/'build/solutions').glob('*.json')):
         for qid,text in json.loads(path.read_text(encoding='utf-8')).items():
             if qid in final and text.strip():final[qid]['solution']=text
+    # Short sections appended to an existing solution (e.g. the practice-check interface).
+    addenda=ROOT/'build/solution_addenda.json'
+    if addenda.exists():
+        for qid,text in json.loads(addenda.read_text(encoding='utf-8')).items():
+            if qid not in final:raise KeyError('addendum for unknown id '+qid)
+            final[qid]['solution']=final[qid].get('solution','').rstrip()+'\n\n'+text
     all_companies=sorted(set(manifest)|{'Navi','Samsung SRIB','Turing'})
     coverage=dict(total_files=sum(map(len,manifest.values())),reviewed_files=len(reviewed),companies=[dict(name=c,files=len(manifest.get(c,[])),reviewed=sum(p in reviewed for p in manifest.get(c,[]))) for c in all_companies])
     reports=[dict(title='AI & ML interviews',file='ai_ml_questions.md',description='ML theory, statistics, GenAI, coding, system design and research-role prompts.'),dict(title='DSA & company OAs',file='dsa_oa_questions.md',description='Reported coding patterns, source links and gaps in company coverage.'),dict(title='Aptitude & core CS',file='aptitude_cs_fundamentals.md',description='Company formats, aptitude topics, technical sections and source caveats.')]

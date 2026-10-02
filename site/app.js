@@ -198,7 +198,10 @@ function renderSolution(q){
     box.innerHTML=`<div class="solution-gate"><h3>Try it first</h3><p>Give the problem an honest attempt. The full solution covers the idea, the reasoning, ${q.type==='coding'?'tested Python code, a dry run ':'every step '}and the usual traps.</p><button class="primary" id="reveal-solution">Show the full solution</button></div>`;
     $('#reveal-solution').onclick=()=>{revealSolution=true;save(q.id,{revealed:true});renderSolution(q)};return;
   }
-  const code=(q.solution.match(/```(?:python|py)\n([\s\S]*?)```/)||[])[1];
+  // Prefer the code block that defines the function the practice checks call.
+  const blocks=[...q.solution.matchAll(/```(?:python|py)\n([\s\S]*?)```/g)].map(m=>m[1]);
+  const fn=q.checker?.function;
+  const code=(fn&&blocks.find(b=>new RegExp(`^def ${fn}\\s*\\(`,'m').test(b)))||blocks[0];
   box.innerHTML=`${code&&editor?'<div class="solution-actions"><button id="load-solution">Load this solution into the editor</button></div>':''}${markdown(q.solution)}${nextCta(q)}`;
   if($('#load-solution'))$('#load-solution').onclick=e=>{
     const b=e.currentTarget;if(b.dataset.confirm!=='1'){b.dataset.confirm='1';b.textContent='Replace your code? Click again to confirm';return;}
@@ -237,7 +240,8 @@ async function runCode(check) {
   const token={};window.currentRun=token;busy(true);runtime('Loading Python…');$('#output').textContent='Starting Python. The first run loads the local runtime…';
   save(q.id,{code,stdin,status:statusOf(q.id)==='new'?'attempted':statusOf(q.id)});
   try{
-    await prepareWorker(); if(window.currentRun!==token||activeQuestion?.id!==q.id)return;
+    try{await prepareWorker()}catch(e){throw new Error(`Python couldn't start (${e.message}).\n\nReload the page with Ctrl + Shift + R (Cmd + Shift + R on Mac), then press Run again. If it keeps failing, try another browser.`)}
+    if(window.currentRun!==token||activeQuestion?.id!==q.id)return;
     runtime('Running…');$('#output').textContent=check?'Checking practice cases…':'Running…';
     const result=await new Promise((resolve,reject)=>{
       const id=Date.now()+Math.random();job={id,resolve,reject};runTimeout=setTimeout(()=>stopWorker('Time limit exceeded (10 seconds).'),10000);
