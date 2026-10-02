@@ -9,3 +9,4 @@ build/*log*
 build/oracle_solution_review.md
 build/PAUSE
 .vscode/
+!site/pyodide/python_stdlib.zip
