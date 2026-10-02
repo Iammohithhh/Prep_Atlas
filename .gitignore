@@ -1,0 +1,11 @@
+*.zip
+Company wise prep resource*/
+oa questions */
+build/ocr/
+build/qa/
+build/*log*
+**/__pycache__/
+*.pem
+build/oracle_solution_review.md
+build/PAUSE
+.vscode/

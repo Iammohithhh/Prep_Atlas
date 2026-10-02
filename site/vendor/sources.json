@@ -1,0 +1,11 @@
+{
+  "marked.js": "https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js",
+  "purify.js": "https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js",
+  "ace.js": "https://cdn.jsdelivr.net/npm/ace-builds@1.43.3/src-min-noconflict/ace.js",
+  "mode-python.js": "https://cdn.jsdelivr.net/npm/ace-builds@1.43.3/src-min-noconflict/mode-python.js",
+  "theme-tomorrow.js": "https://cdn.jsdelivr.net/npm/ace-builds@1.43.3/src-min-noconflict/theme-tomorrow.js",
+  "theme-tomorrow_night.js": "https://cdn.jsdelivr.net/npm/ace-builds@1.43.3/src-min-noconflict/theme-tomorrow_night.js",
+  "katex/": "https://registry.npmjs.org/katex/-/katex-0.16.22.tgz",
+  "highlight.min.js": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
+  "fonts.css": "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400;600 (latin subset, SIL Open Font License)"
+}

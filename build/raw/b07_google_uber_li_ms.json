@@ -1,0 +1,210 @@
+{
+  "batch": "b07_google_uber_li_ms",
+  "processed_files": [
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0016.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0017.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0018.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0019.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0020.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0021.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0029.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0031.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0033 (1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0035 (1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0037 (1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0039 (1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0041 (1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0042(1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0043(1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0044(1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0045(1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0046(1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0047.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0049 (1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0050 (1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0051 (1).jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0053.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0054.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0055.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0056.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0057.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0058.jpg",
+    "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0059.jpg"
+  ],
+  "skipped_files": [],
+  "questions": [
+    {
+      "id": "b07_google_uber_li_ms-001",
+      "company": "Google",
+      "also_asked_by": [],
+      "section": "dsa",
+      "subsection": "strings",
+      "topics": ["strings", "subsequence", "greedy", "prefix-suffix matching"],
+      "pattern": "subsequence match with at most one substitution (prefix greedy + suffix greedy)",
+      "difficulty": "hard",
+      "type": "coding",
+      "title": "First Subsequence (match B in A with at most one change)",
+      "statement": "You are given:\n\n- A string $A$ consisting of lowercase English letters\n- A string $B$ consisting of lowercase English letters\n\nYou have to check whether string $A$ contains string $B$ as a subsequence or not. You can change **at most 1 character** in string $B$ (**except the first character**).\n\n**Task:** Determine the first index of occurrence of string $B$ in string $A$ (i.e. the smallest starting index in $A$ of a subsequence that matches $B$ after at most one allowed change). If not found, output $-1$.\n\n**Notes**\n- A string $b$ is said to be a subsequence of string $a$ if $b$ can be obtained from $a$ by replacing at most 1 character, without changing the ordering of the remaining characters.\n- 1-based indexing is used.\n\n**Example:** $A$ = `daabe`, $B$ = `abe`. Subsequences of $A$ that can match $B$ by changing at most 1 character: $A[2],A[3],A[5]$ = `aae` (change $B[2]$ from 'b' to 'a'); $A[2],A[4],A[5]$ = `abe` (no change); $A[3],A[4],A[5]$ = `abe` (no change). The first occurrence starts at index 2, so the answer is 2.",
+      "input_format": "The first line contains an integer $T$, the number of test cases. For each test case:\n- The first line contains string $A$ (lowercase English letters).\n- The second line contains string $B$ (lowercase English letters).",
+      "output_format": "For each test case, print the answer in a new line.",
+      "constraints": "$1 \\le T \\le 10$\n$1 \\le |A| \\le 2000$\n$1 \\le |B| \\le 2000$\nTime limit: 1.0 sec, Memory: 256 MB",
+      "function_signature": "firstOccurence(A, B) -> int  (starter code in C, C++, Java, Python)",
+      "examples": [
+        {
+          "input": "2\nabcbc\ncba\nlhs\nrhs",
+          "output": "3\n-1",
+          "explanation": "Test 1: A[3],A[4],A[5] = 'cbc' matches 'cba' by changing B[3] from 'a' to 'c', so the first occurrence starts at index 3. Test 2: the first character of B cannot be changed and 'r' does not occur in A, so the answer is -1."
+        }
+      ],
+      "explanation": "The start must be an index i with A[i] = B[1]; scan candidate starts left to right and return the first feasible one. Precompute suf[j] = the largest position p such that B[j..m] is a subsequence of A[p..n] (greedy from the right). For a fixed start i, greedily match B[2..] forward; before matching each B[j] at greedy position pos (pos = last matched index), check whether skipping B[j] (substituting it with A[pos+1]) works: pos+1 < suf[j+1] (or j = m and pos+1 <= n). If full match without change succeeds, it is also feasible. Each start costs O(|A| + |B|), total O(|A|·(|A|+|B|)) ≈ 8e6 per test, O(|A|+|B|) space.",
+      "leetcode": {"name": "LeetCode 3302 - Find the Lexicographically Smallest Valid Sequence (subsequence with at most one change)", "url": "https://leetcode.com/problems/find-the-lexicographically-smallest-valid-sequence/", "similarity": "similar"},
+      "source_files": [
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0016.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0017.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0018.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0019.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0020.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0021.jpg"
+      ],
+      "notes": "HackerEarth test GOCC103 (Google Online Challenge), Question 2, max score 30."
+    },
+    {
+      "id": "b07_google_uber_li_ms-002",
+      "company": "Google",
+      "also_asked_by": [],
+      "section": "dsa",
+      "subsection": "sliding-window",
+      "topics": ["sliding-window", "two-pointers", "multiset", "greedy"],
+      "pattern": "sliding window where the Y largest elements are free and the rest must sum to at most X",
+      "difficulty": "hard",
+      "type": "coding",
+      "title": "Maximum Length Subarray (zero out with decrement and reset operations)",
+      "statement": "You are given integers $N$, $X$ and $Y$ and an array $A = A_1, A_2, \\dots, A_N$ of length $N$.\n\nYou can perform the following two types of operation on array $A$:\n\n1. **Type 1:** Choose an index $i$ ($1 \\le i \\le N$) and replace $A_i$ by $A_i - 1$.\n2. **Type 2:** Choose an index $i$ ($1 \\le i \\le N$) and replace $A_i$ by $0$.\n\n**Task:** Determine the maximum length subarray of $A$ that can be obtained such that the value of all the elements in the subarray is zero, after applying **at most** $X$ operations of type 1 and **at most** $Y$ operations of type 2.\n\n**Notes**\n- A subarray is a contiguous part $A_l, A_{l+1}, \\dots, A_r$ for $1 \\le l \\le r \\le N$.\n- 1-based indexing.\n\n**Example:** $N=4, X=2, Y=1, A=[4,2,0,1]$. Apply type 2 on index 2 → $[4,0,0,1]$; apply type 1 on index 4 → $[4,0,0,0]$. The maximum all-zero subarray has length 3.",
+      "input_format": "The first line contains $T$, the number of test cases. For each test case:\n- Line 1: integer $N$\n- Line 2: integer $X$\n- Line 3: integer $Y$\n- Line 4: $N$ space-separated integers, the array $A$.",
+      "output_format": "For each test case, print on a new line the maximum length of a subarray that can be made all zero using at most $X$ type-1 and $Y$ type-2 operations.",
+      "constraints": "$1 \\le T \\le 7$\n$1 \\le N \\le 10^5$\n$0 \\le A_i \\le 10^9$\n$0 \\le X \\le 10^{14}$\n$0 \\le Y \\le 10^9$\nTime limit: 5.0 sec, Memory: 256 MB",
+      "function_signature": "LongestSubarray(N, X, Y, A) -> int  (starter code in C, C++, Java, Python)",
+      "examples": [
+        {
+          "input": "1\n6\n4\n2\n4 2 1 3 2 5",
+          "output": "4",
+          "explanation": "Type 2 on index 1 → [0,2,1,3,2,5]; type 2 on index 4 → [0,2,1,0,2,5]; type 1 twice on index 2 and once on index 3 → [0,0,0,0,2,5]. The longest all-zero subarray has length 4."
+        }
+      ],
+      "explanation": "For a fixed window, the optimal plan resets the Y largest elements and decrements the rest, so cost(window) = sum − (sum of the top-Y values) and it must be ≤ X. The cost only drops when the window shrinks, so use two pointers. Keep two multisets (the top-Y elements and the rest) plus the running sum of the rest, and rebalance on every insert or delete. O(N log N) time, O(N) space.",
+      "leetcode": {"name": "LeetCode 2398 - Maximum Number of Robots Within Budget (sliding window + ordered structure)", "url": "https://leetcode.com/problems/maximum-number-of-robots-within-budget/", "similarity": "similar"},
+      "source_files": [
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0029.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0031.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0033 (1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0035 (1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0037 (1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0039 (1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0041 (1).jpg"
+      ],
+      "notes": "HackerEarth test GOCC102 (Google Online Challenge), Question 1, max score 30. Use 64-bit sums."
+    },
+    {
+      "id": "b07_google_uber_li_ms-003",
+      "company": "Google",
+      "also_asked_by": [],
+      "section": "dsa",
+      "subsection": "trees",
+      "topics": ["trees", "dfs", "rerooting", "bit-manipulation", "subtree sums"],
+      "pattern": "reroot-any-subtree = down-subtree or its complement; maximise gain via subtree sums",
+      "difficulty": "hard",
+      "type": "coding",
+      "title": "Subtree XOR (reroot once, XOR one subtree with K, maximise sum)",
+      "statement": "You are given:\n\n- A tree with $N$ nodes\n- An array $A$ denoting the value of each node\n- A non-negative integer $K$\n\nYou can do the following operation on the tree **at most once**:\n\n- Pick a node $r$ and make it the root of the tree.\n- In the new tree, pick a node $x$, and for each node in the subtree of $x$ update $A_{node} = A_{node} \\oplus K$.\n\n**Task:** Determine the maximum sum of values of all the nodes in the tree that can be obtained.\n\n**Notes**\n- 1-based indexing.\n- $\\oplus$ denotes bitwise XOR.\n- A subtree of a node contains all the nodes that are descendants of that node and the node itself.\n\n**Example:** $N=3$, edges $=[(1,2),(1,3)]$, $A=[1,1,3]$, $K=3$. Pick $r=3$ as the root and update the subtree of $x=1$ (nodes 1 and 2): the new array is $A=[2,2,3]$, sum $=7$, which is the maximum. Answer: 7.",
+      "input_format": "The first line contains $T$, the number of test cases. For each test case:\n- The first line contains $N$, the number of nodes.\n- Each of the next $N-1$ lines contains two space-separated integers denoting an edge.\n- The next line contains $N$ space-separated integers, the node values.\n- The next line contains a single integer $K$.",
+      "output_format": "For each test case, print the answer in a new line.",
+      "constraints": "$1 \\le T \\le 1000$\n$1 \\le N \\le 10^5$\n$0 \\le A_i \\le 10^9$\n$0 \\le K \\le 10^9$\nThe given edges form a tree.\nSum of $N$ over all test cases $\\le 10^6$.\nTime limit: 5.0 sec, Memory: 256 MB",
+      "function_signature": "maximumSum(N, edges, A, K) -> long  (edges is an (N-1) x 2 array; starter code in C, C++, Java, Python)",
+      "examples": [
+        {
+          "input": "1\n4\n1 2\n2 3\n2 4\n1 1 1 1\n3",
+          "output": "8",
+          "explanation": "Choose r = 1 as root and x = 1, XOR every node with 3: A = [2,2,2,2], sum = 8."
+        }
+      ],
+      "explanation": "Let g[v] = (A[v] XOR K) − A[v]. Root the tree at 1 once and compute subtree gain sums S[v]. After any rerooting, the subtree of x is either an original down-subtree of some v (gain S[v]) or the complement of one (gain G − S[v], where G = total gain). It can also be the whole tree. Answer = ΣA + max(0, max_v S[v], max_v (G − S[v])). One DFS (use iterative DFS for depth 1e5), O(N) time and space, 64-bit sums.",
+      "leetcode": {"name": "LeetCode 3068 - Find the Maximum Sum of Node Values (XOR with k on tree)", "url": "https://leetcode.com/problems/find-the-maximum-sum-of-node-values/", "similarity": "similar"},
+      "source_files": [
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0042(1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0043(1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0044(1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0045(1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0046(1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0047.jpg"
+      ],
+      "notes": "HackerEarth test GOCC102, Question 1 (a different slot from the Maximum Length Subarray set). Photos are taken at an angle but readable."
+    },
+    {
+      "id": "b07_google_uber_li_ms-004",
+      "company": "Google",
+      "also_asked_by": [],
+      "section": "dsa",
+      "subsection": "trees",
+      "topics": ["trees", "dfs", "euler tour", "string hashing", "palindrome"],
+      "pattern": "post-order Euler tour makes each subtree a contiguous substring; palindrome check by forward and reverse hash",
+      "difficulty": "hard",
+      "type": "coding",
+      "title": "Find Palindromes (post-order subtree string palindrome queries)",
+      "statement": "You are given a tree $T$ with $N$ nodes, rooted at node 1. Every node has a character $C[i]$ assigned to it. You are given $Q$ queries of the form:\n\n`Query: u`\n\nFor each query, find whether the string $S$ generated for node $u$ is a palindrome. String $S$ for a node $u$ is generated as follows:\n\n```\nS = Empty\nmakeString(u)\n{\n    For all v = Child of u\n        makeString(v)\n    S += C[u];\n}\n```\n\nThe children of a node must be traversed in order of increasing node number.",
+      "input_format": "- The first line contains an integer $N$.\n- Next $N-1$ lines contain two space-separated integers $u$ and $v$ denoting an edge between node $u$ and node $v$.\n- The next line contains $N$ space-separated characters denoting $C[i]$ for all $i$ from 1 to $N$.\n- The next line contains an integer $Q$.\n- Next $Q$ lines each contain an integer $u$ denoting the node for the query.",
+      "output_format": "Print $Q$ lines. In each line, print 1 if $S$ is palindromic, otherwise print 0. (Use fast I/O.)",
+      "constraints": "$1 \\le N, Q \\le 200000$\n$C[i]$ contains lowercase Latin letters.\nTime limit: 2.0 sec, Memory: 512 MB",
+      "examples": [
+        {
+          "input": "5\n1 2\n1 3\n2 4\n2 5\na b a b c\n2\n1\n2",
+          "output": "0\n1",
+          "explanation": "For node 1, S = \"bcbaa\" (not a palindrome). For node 2, S = \"bcb\" (a palindrome)."
+        }
+      ],
+      "explanation": "Run one iterative post-order DFS from node 1, visiting children in increasing order, and build the global string P. The subtree of u is the contiguous block P[out[u] − size[u] + 1 .. out[u]]. Precompute polynomial hashes of P and of reverse(P), using double hashing or mod 2^61−1 to avoid collisions. Each query compares the forward hash of the block with the hash of the mirrored block. O((N + Q)) after an O(N log N) sort of the adjacency lists. Manacher on P also works.",
+      "leetcode": {"name": "LeetCode 3327 - Check if DFS Strings Are Palindromes", "url": "https://leetcode.com/problems/check-if-dfs-strings-are-palindromes/", "similarity": "same"},
+      "source_files": [
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0049 (1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0050 (1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0051 (1).jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0053.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0054.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0055.jpg"
+      ],
+      "notes": "HackerEarth test GOCC102, appears as Question 2 in one set and Question 1 in another (two candidates' screenshots of the same problem)."
+    },
+    {
+      "id": "b07_google_uber_li_ms-005",
+      "company": "Google",
+      "also_asked_by": [],
+      "section": "dsa",
+      "subsection": "hashing",
+      "topics": ["hashing", "dp", "difference array", "coordinate compression"],
+      "pattern": "longest arithmetic subsequence with fixed difference K over a range-update-built array",
+      "difficulty": "hard",
+      "type": "coding",
+      "title": "Complex Subsequences (longest AP subsequence with difference K after range adds)",
+      "statement": "You have an array of infinite length with all elements initially zero. You are also given:\n\n- Two integers $N$ and $K$.\n- In the next $N$ lines, three integers $L$, $R$ and $X$, meaning you add $X$ to every element of the array from index $L$ to $R$ (inclusive).\n\nYour task is to find a subsequence of this array that meets the following conditions:\n\n- The subsequence is of maximum length.\n- It is the lexicographically smallest among those.\n- The subsequence forms an increasing sequence of the form $[Z, Z+K, Z+2K, \\dots, Z+(L-1)K]$ for some value $Z$ and length $L$.\n\n**Notes**\n- Sequence $A=[A_1,\\dots,A_L]$ is lexicographically smaller than $B=[B_1,\\dots,B_L]$ if at the first position $t$ where they differ, $A_t < B_t$.\n- The subsequence must contain only positive integers. 1-based indexing.\n\n**Example:** $N=2, K=1, A=[[1,2,1],[2,4,1]]$. After processing both queries the array is $[1,2,1,1]$. Select the subsequence $[1,2]$ of length 2. The answer is $[2, 1, 2]$ (the length followed by the elements).",
+      "input_format": "- The first line contains an integer $N$.\n- The second line contains an integer $K$.\n- The next $N$ lines each contain 3 space-separated integers $L$, $R$ and $X$.",
+      "output_format": "Print the length of the subsequence first, then the elements of the subsequence, all on the same line.",
+      "constraints": "$1 \\le N, K \\le 2 \\cdot 10^5$\n$1 \\le L \\le R \\le 10^9$\n$1 \\le X \\le 10^9$\nTime limit: 5.0 sec, Memory: 256 MB",
+      "function_signature": "long long* longestSubsequence(int N, int K, long long** A, int* out_n)  (C; A is N x 3 rows of L, R, X)",
+      "examples": [
+        {
+          "input": "4\n2\n1 3 1\n2 4 2\n5 6 3\n5 5 1",
+          "output": "2 1 3",
+          "explanation": "The array becomes [1,3,3,2,4,3]. Maximum-length subsequences following the rule are [1,3] and [2,4]. The lexicographically smallest is [1,3], so print length 2 followed by 1 3."
+        }
+      ],
+      "explanation": "Build the array as at most 2N constant segments with a sorted difference map over the endpoints. Drop zero-valued segments and merge adjacent equal values, since a strictly increasing subsequence can use only one copy. Scan the segment values left to right with a hashmap best[v] = longest valid chain ending in value v: best[v] = max(best[v], best[v−K] + 1). Every valid subsequence is fixed by its start Z and length L, so the answer is the max L with the smallest Z = v − (L−1)K. Output L, Z, Z+K, .... O(N log N) time, O(N) space, 64-bit values (up to 2e14).",
+      "leetcode": {"name": "LeetCode 1218 - Longest Arithmetic Subsequence of Given Difference", "url": "https://leetcode.com/problems/longest-arithmetic-subsequence-of-given-difference/", "similarity": "similar"},
+      "source_files": [
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0056.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0057.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0058.jpg",
+        "Company wise prep resource-20261001T122326Z-1-001\\Company wise prep resource\\Google\\IMG-20240713-WA0059.jpg"
+      ],
+      "notes": "HackerEarth test GOCC102, Question 2. The symbol L is used both for the range start and for the subsequence length in the original statement."
+    }
+  ]
+}

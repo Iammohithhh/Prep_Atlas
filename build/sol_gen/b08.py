@@ -1,0 +1,125 @@
+import sys
+sys.path.insert(0, 'build/sol_gen')
+from common import D, T, save
+
+D['web-ml-155'] = T(
+ 'Presenting and defending research means stating a clear question, the hypothesis, what was done, the evidence and its limits, and being ready to be challenged on each step.',
+ 'Interviewers test whether you understand why the method works, not just that it worked, and whether you know what would prove you wrong.',
+ 'Structure (about 10 minutes): (1) problem and why it matters; (2) prior work and the gap; (3) your idea in one sentence; (4) method with the key equation (be ready to derive it); (5) experimental design: datasets, splits, baselines, metrics, hyperparameter budget; (6) results with uncertainty (seeds, confidence intervals); (7) ablations isolating each component; (8) failure cases and limitations; (9) next experiment. Example claim: "Method X improves accuracy by 2 points; ablation shows 1.4 come from component A".',
+ 'If asked "what if your baseline were tuned as well?", answer with the equal-tuning-budget comparison; for "does it generalise?", show out-of-distribution results or admit the limitation and propose the test.',
+ 'Be specific and honest: acknowledge weaknesses before they are found, separate what is proven from what is conjectured, tie research interests to concrete questions you could work on in the team, and show how your work would transfer.',
+ [('What would falsify your claim?', 'A result where the claimed effect disappears under a controlled ablation or a fair baseline.'),
+  ('What was the hardest bug?', 'Describe the debugging process, not just the fix.'),
+  ('What would you do with another month?', 'Name the single experiment that most reduces uncertainty.')])
+
+D['web-ml-156'] = T(
+ 'Discussing a dissertation and supervision experience means explaining the problem, your contribution, your methodology and what you learned about doing and guiding research.',
+ 'It shows independence (you drove the work), judgement (you made design choices) and communication, as well as how you handle collaboration, setbacks and mentoring.',
+ 'Use a structured answer: context and research question; your specific contribution (be clear about what was yours); method and evaluation; results and what they mean; limitations and what you would change; a challenge you overcame. For supervision: how you planned milestones, gave feedback, handled disagreement, and what you learned from mentoring. For multimodal projects: define the inputs, supervision and metrics, track tensor shapes through encoders, projection and fusion, and discuss resolution, frozen versus trainable encoders, modality imbalance and failure slices.',
+ 'Example: "I worked on a vision-language model for X. My contribution was the data-curation pipeline and the evaluation harness; I found a failure slice on small objects and fixed it with higher-resolution tiles, improving recall by 6 points." Quantify wherever possible.',
+ 'Balance humility with ownership: acknowledge collaborators, but be precise about your decisions. Prepare for deep questions on any equation or design choice you mention.',
+ [('How did you handle disagreements with your supervisor?', 'Present evidence, run a quick experiment to decide, and agree on the next step.'),
+  ('What would you do differently?', 'Name a specific decision and a better alternative.'),
+  ('How did you supervise others?', 'Clear milestones, regular check-ins and constructive, specific feedback.')])
+
+D['web-ml-157'] = T(
+ 'A long project deep dive tests whether you really built and understand your work; the follow-up on computer vision and probability tests fundamentals.',
+ 'Interviewers probe for depth: data, baselines, decisions, failures and the maths behind your method. Reading the team\'s paper tests whether you can quickly understand and critique new work.',
+ 'Prepare: problem and metric, data (size, labelling, splits), baseline numbers, final architecture and why, ablations, deployment or results, and one failure story. Fundamentals: convolution and receptive field, data augmentation, transfer learning, IoU and NMS; probability: Bayes rule, expectation and variance, conditional probability, common distributions, MLE. Paper reading: identify the claim, method, assumptions, experiments and weaknesses in about 15 minutes; summarise in three sentences and list two questions.',
+ 'Probability warm-up: P(disease | positive) = (0.99 x 0.01)/(0.99 x 0.01 + 0.05 x 0.99) = 0.167. CV warm-up: a 3 x 3 conv stack of two layers has a 5 x 5 receptive field with 18 C^2 weights versus 25 C^2 for a single 5 x 5 conv.',
+ 'Be ready to go deep on any number you quote; choose a project you can defend. For the paper, critique constructively: question baselines, compute cost, data leakage and generalisation.',
+ [('What would you ablate first?', 'The component you believe contributes most to the gain.'),
+  ('How do you read a paper quickly?', 'Abstract, figures, method, experiments, limitations.'),
+  ('How do you test a probability intuition?', 'Simulate it.')])
+
+D['web-ml-158'] = T(
+ 'Closed-form linear regression finds the weight vector w minimising the squared error ||y - X w||^2 by solving the normal equations.',
+ 'The best fit makes the residual orthogonal to every column of X: the prediction X w is the projection of y onto the column space of X.',
+ 'Loss L(w) = (y - X w)^T (y - X w). Gradient: dL/dw = -2 X^T (y - X w). Setting it to zero gives the normal equations X^T X w = X^T y, so w = (X^T X)^(-1) X^T y when X^T X is invertible (X has full column rank). The Hessian 2 X^T X is positive semi-definite, so the stationary point is a minimum. Ridge: w = (X^T X + lambda I)^(-1) X^T y, always invertible for lambda > 0. Numerically prefer QR (X = QR, solve R w = Q^T y) or the SVD pseudo-inverse over explicitly inverting X^T X.',
+ 'Data points (1, 1), (2, 2), (3, 2) with intercept: X = [[1, 1], [1, 2], [1, 3]], y = (1, 2, 2). X^T X = [[3, 6], [6, 14]], X^T y = (5, 11). Inverse = (1/6)[[14, -6], [-6, 3]]. w = (1/6)(14 x 5 - 6 x 11, -6 x 5 + 3 x 11) = (1/6)(4, 3) = (0.667, 0.5).',
+ 'Closed form is O(n d^2 + d^3): good for small d; for large d use gradient descent or conjugate gradients; collinearity makes X^T X ill-conditioned (condition number squared), so use regularisation or QR/SVD.',
+ [('Why does X^T X need to be invertible?', 'Otherwise the solution is not unique (collinear features).'),
+  ('Geometric meaning?', 'Orthogonal projection of y onto the column space.'),
+  ('Why not invert X^T X?', 'Numerically unstable; QR or SVD are better.')])
+
+D['web-ml-159'] = T(
+ 'Sharded matrix multiplication splits matrices across devices; its backpropagation follows the same chain rule as the unsharded version, with collectives implementing the sums that cross shards.',
+ 'For C = A B, each local matmul gives a partial result; whenever the sharded dimension is contracted, partial results must be summed across devices (all-reduce), and when it is an output dimension results are concatenated (all-gather).',
+ 'Gradients: dA = dC B^T and dB = A^T dC. Case 1, B split by columns B = [B_1 | ... | B_p] (tensor parallel): C_j = A B_j; dA = sum_j dC_j B_j^T (needs an all-reduce across devices), dB_j = A^T dC_j (local). Case 2, A split by columns and B by rows (contraction dimension split): C = sum_i A_i B_i (forward all-reduce); dA_i = dC B_i^T and dB_i = A_i^T dC (local, with dC replicated). Case 3, A split by rows (data parallel): C_i = A_i B; dB = sum_i A_i^T dC_i (all-reduce) and dA_i = dC_i B^T (local). Rule: forward all-reduce in a contraction split becomes an identity in backward, and a forward identity (replicated input used by sharded outputs) becomes an all-reduce in backward.',
+ 'Check with a tiny example (2 x 2 matrices, 2 devices): compute the gradient with the sharded formulas and compare with finite differences; they must agree.',
+ 'Choose the sharding that minimises communication: weights split by columns then rows in successive layers (Megatron-style) needs only one all-reduce per block in forward and one in backward.',
+ [('Why does the pattern alternate (column then row)?', 'The column-split output feeds the row-split input without communication.'),
+  ('What collectives are needed?', 'All-reduce for contractions, all-gather for concatenations, reduce-scatter to save memory.'),
+  ('How do you verify?', 'Compare against the unsharded gradient and finite differences.')])
+
+D['web-ml-161'] = T(
+ 'Speech latent-space decomposition (disentanglement) learns representations in which different latent factors capture content (what is said) and speaker (who says it).',
+ 'A speech signal mixes linguistic content, speaker identity, prosody and noise. Separating them enables voice conversion, speaker-independent recognition and privacy-preserving processing.',
+ 'Encoder E produces z = (z_content, z_speaker). Decoder reconstructs spectrograms: L_rec = ||x - D(z_c, z_s)||^2. Disentangling pressure: (a) information bottleneck on z_c with vector quantisation or instance normalisation; (b) speaker classification loss on z_s and an adversarial speaker classifier on z_c (gradient reversal); (c) cycle consistency: swapping speakers, then re-encoding should preserve z_c; (d) mutual-information penalties between z_c and z_s. Self-supervised models (HuBERT) provide content units; speaker embeddings (x-vectors, ECAPA) provide identity.',
+ 'Voice conversion: encode source speech to content units, encode a target speaker embedding from a reference clip, decode with a vocoder; evaluate with WER of the converted speech (content kept) and speaker verification score against the target (identity changed).',
+ 'Disentanglement is never perfect: stronger bottlenecks lose content, weaker ones leak speaker information. Use speaker-independent splits for evaluation, test in noisy conditions, and measure leakage by training a classifier to predict speaker from z_c.',
+ [('How to measure leakage?', 'Train a probe to predict speaker from the content latent.'),
+  ('Why adversarial training?', 'It removes speaker information from the content branch.'),
+  ('What features do you use?', 'Log-mel spectrograms (80 bins, 25 ms window, 10 ms hop).')])
+
+D['web-ml-162'] = T(
+ 'Attention complexity: self-attention costs O(n^2 d) time and O(n^2) memory for n tokens and dimension d. Debugging overfitting means comparing training and validation behaviour and fixing the cause. On-the-spot derivations test whether you can reason from first principles.',
+ 'The n x n score matrix is the quadratic part; overfitting is a large gap between training and validation performance.',
+ 'Attention derivation: scores S = Q K^T/sqrt(d) costs n x n x d multiply-adds (2 n^2 d FLOPs); softmax over n^2 entries; output A V costs another 2 n^2 d FLOPs; total about 4 n^2 d plus projections 8 n d^2 (4 projections of size n x d x d). So per layer: O(n^2 d + n d^2); attention dominates when n > d. Overfitting diagnosis: high training and low validation accuracy; fixes in order: check leakage and split, more data or augmentation, regularisation (weight decay, dropout, early stopping), smaller model, ensembling. Derivation tip: define shapes first, apply the chain rule step by step, sanity-check with a small case.',
+ 'For n = 4096, d = 1024: attention FLOPs about 4 x 4096^2 x 1024 = 6.9e10, projections about 8 x 4096 x 1024^2 = 3.4e10; at n = 16384 attention is about 16 times larger.',
+ 'Present derivations calmly, state assumptions, verify with a tiny example; for overfitting, mention learning curves and ablate one fix at a time.',
+ [('When does attention dominate?', 'When n is larger than about 2 d.'),
+  ('How to reduce the quadratic cost?', 'Sparse or local attention, FlashAttention for memory, linear attention.'),
+  ('First thing to check with overfitting?', 'Data leakage and split quality.')])
+
+D['web-ml-163'] = T(
+ 'An asynchronous RL post-training system separates generation (rollouts) from learning (policy updates) so GPUs stay busy, accepting that rollouts come from slightly stale policies.',
+ 'In synchronous RL, training waits for the slowest rollout; asynchronous designs let inference workers keep generating while learners update, improving throughput at the cost of off-policy data.',
+ 'Components: rollout workers (inference engines such as vLLM) generating responses from policy version k; reward computation (verifiers, reward models, sandboxes); a replay queue; learners updating weights and broadcasting them. Off-policy correction: importance ratio rho = pi_theta(a|s)/pi_behaviour(a|s) with clipping (PPO or GRPO objective), a staleness limit (discard data older than m versions), and KL regularisation to a reference policy: J = E[min(rho A, clip(rho, 1 - e, 1 + e) A)] - beta KL. Advantages: group-relative (GRPO) or critic-based (PPO).',
+ 'With 70% of GPUs generating and 30% training, utilisation rises from about 50% (synchronous, bubbles) to above 85%, while staleness is bounded to 1-2 policy versions.',
+ 'Throughput versus bias: more asynchrony means more stale data and instability; mitigate with clipping, small staleness bounds and frequent weight sync. Watch reward hacking and distribution shift; verify improvements with independent human or held-out evaluation.',
+ [('Why bound staleness?', 'Old data makes the importance ratios high-variance.'),
+  ('How do weights get to workers?', 'Periodic broadcast or shared storage, with versioned checkpoints.'),
+  ('What if rewards are slow?', 'Decouple them in another queue with timeouts.')])
+
+D['web-ml-164'] = T(
+ 'Mining novel images from unlabelled data means finding examples that are different from, and add information beyond, what the model has already seen, typically for labelling or training-set expansion.',
+ 'Random sampling returns mostly redundant common images; the valuable ones are rare, informative or out-of-distribution.',
+ 'Method: (1) embed all images with a strong self-supervised model (DINO, CLIP); (2) compute novelty as the distance to the nearest labelled/seen embeddings (kNN distance, Mahalanobis, density models) or by uncertainty (ensemble disagreement, entropy); (3) cluster and sample diverse points (k-center greedy, core-set) to avoid duplicates; (4) deduplicate with near-duplicate hashing; (5) filter noise and corrupted images; (6) send selected images for labelling and retrain (active learning loop). Evaluate by validation gain per labelled sample against random sampling.',
+ 'From 10M unlabelled images, embed, remove those within distance d of the training set, cluster the remainder into 1,000 clusters and select 20 per cluster: 20k diverse novel candidates; labelling them improves rare-class recall by several points over 20k random images.',
+ 'Novelty can pick up junk and outliers (blurry, corrupted); combine novelty with quality filters and diversity. Uncertainty sampling targets the decision boundary but can be redundant; core-set targets coverage.',
+ [('Novelty versus uncertainty?', 'Novelty is about data coverage, uncertainty about the decision boundary.'),
+  ('How to avoid duplicates?', 'Cluster-based diversity selection.'),
+  ('How to evaluate?', 'Gain per label versus random baselines.')])
+
+D['web-ml-165'] = T(
+ 'Finding flaws in an ML case study means auditing the data, evaluation, modelling and conclusions for errors that could invalidate the reported results.',
+ 'Many reported gains come from leakage, unfair comparisons or metric choices rather than better modelling.',
+ 'Checklist: (1) problem and metric: does the metric match the goal; is the baseline sensible; (2) data: label quality, sampling bias, duplicates between splits, time order violations, leakage via features derived from the target or future; (3) preprocessing fitted on all data before the split; (4) evaluation: tuned on the test set, single split without uncertainty, class imbalance with accuracy, no confidence intervals; (5) comparison: baselines under-tuned, different data or compute; (6) generalisation: no out-of-distribution or subgroup analysis; (7) claims: causal language from correlational evidence; (8) reproducibility: no seeds, code or ablations.',
+ 'Report says "AUC 0.99 predicting churn". Flaws found: the feature "cancellation_reason" is only filled after churn (leakage) and the random split mixes the same customers across train and test; with a time-based split and the feature removed, AUC falls to 0.78.',
+ 'Prioritise flaws by impact, suggest concrete fixes and say which conclusions still hold. Be constructive: describe how to rerun the experiment correctly.',
+ [('What is the commonest flaw?', 'Leakage.'),
+  ('How to check for leakage quickly?', 'Look at feature importance and timestamps of features versus labels.'),
+  ('What if the baseline is weak?', 'Retune it with equal effort and rerun.')])
+
+D['web-ml-166'] = T(
+ 'This interview mixes a research talk, medium-hard coding, linear-algebra-based algorithms and ML fundamentals, reflecting a research fellow role.',
+ 'Be able to present your work clearly, solve coding problems reliably and reason with matrices and probability.',
+ 'Linear algebra toolkit: eigen-decomposition A v = lambda v and its use in PCA; SVD A = U S V^T and low-rank approximation (Eckart-Young); solving least squares by QR or SVD; power iteration for the dominant eigenvector (v <- A v/||A v||); conjugate gradient for symmetric positive definite systems; matrix multiplication cost O(n^3) (Strassen n^2.81). ML fundamentals: bias-variance, regularisation, gradient descent, cross-entropy, evaluation metrics. Coding: arrays, graphs, dynamic programming, two pointers; state the approach and complexity before coding.',
+ 'Power iteration example: A = [[2, 1], [1, 3]]; starting from (1, 1): A v = (3, 4) -> normalised (0.6, 0.8); next A v = (2, 2.6) ... converges to the eigenvector for lambda = 3.618.',
+ 'Prepare a 10 to 15 minute talk with a clear story; practise LeetCode medium-hard problems with timed explanations; revise linear algebra derivations. Communicate assumptions and test your code on edge cases.',
+ [('What does SVD give you?', 'Orthogonal bases and singular values: the best low-rank approximations.'),
+  ('Why is QR better than the normal equations?', 'It avoids squaring the condition number.'),
+  ('How do you structure the talk?', 'Problem, idea, evidence, limitations, next steps.')])
+
+D['web-ml-167'] = T(
+ 'A research-engineer coding test with heavy non-algorithmic logic evaluates careful implementation: reading a spec precisely, handling many cases and writing correct, tested code rather than clever algorithms.',
+ 'The challenge is correctness under a long specification: state machines, parsing, bookkeeping, simulation and edge cases.',
+ 'Approach: (1) read the whole spec and list rules and edge cases; (2) design data structures and invariants; (3) write small, well-named functions and implement incrementally; (4) write tests from every example and edge case before moving on; (5) keep the code simple, avoid premature optimisation, and check complexity at the end. For the follow-up call: be ready to explain the design, extend it with a new requirement and reason about performance and failure modes.',
+ 'Example: implementing a rate limiter or a mini interpreter with many rules: define a Rule type, a Result type and a table of tests; run the tests after every rule added.',
+ 'Time management matters: finish a correct simple version first, then optimise or generalise. Communicate your reasoning, ask clarifying questions and test constantly.',
+ [('How do you avoid logic bugs?', 'Write tests per rule and use small pure functions.'),
+  ('What if the spec is ambiguous?', 'Ask, or state your assumption and test it.'),
+  ('How do you extend the solution?', 'Keep the rules data-driven.')])
+
+save('B_09.json')

@@ -1,0 +1,312 @@
+import json, sys
+from pathlib import Path
+
+D = {}
+
+
+def T(definition, intuition='', math='', example='', tradeoffs='', followups=()):
+    out = '### Definition\n' + definition.strip() + '\n'
+    if intuition:
+        out += '\n### Intuition\n' + intuition.strip() + '\n'
+    if math:
+        out += '\n### The math\n' + math.strip() + '\n'
+    if example:
+        out += '\n### Concrete example\n' + example.strip() + '\n'
+    if tradeoffs:
+        out += '\n### Trade-offs and when to use what\n' + tradeoffs.strip() + '\n'
+    if followups:
+        out += '\n### Likely follow-ups\n' + '\n'.join(f'- **{q}** {a}' for q, a in followups) + '\n'
+    return out
+
+
+def S(body, wrong='', fast='', traps=''):
+    out = '### Solution\n' + body.strip() + '\n'
+    if wrong:
+        out += '\n### Why the other options are wrong\n' + wrong.strip() + '\n'
+    if fast:
+        out += '\n### Faster method\n' + fast.strip() + '\n'
+    if traps:
+        out += '\n### Common traps\n' + traps.strip() + '\n'
+    return out
+
+
+D['curated-local-hilabs-poisson'] = T(
+ 'The number of events in a fixed interval, when events occur independently at a constant average rate and cannot occur simultaneously, follows a Poisson distribution.',
+ 'If calls arrive at random, evenly over time, split the day into tiny slots; each slot has a very small chance of a call. The total count is a sum of many rare independent Bernoulli events, which is the Poisson limit of the binomial.',
+ 'P(N = k) = e^(-lambda) lambda^k / k!, k = 0, 1, 2, ...\nMean = variance = lambda. For an interval of t days the parameter is lambda t. It is the limit of Binomial(n, lambda/n) as n grows.',
+ 'With lambda = 3 calls per day, P(exactly 2 calls) = e^(-3) 3^2 / 2! = 0.224. P(no calls) = e^(-3) = 0.0498.',
+ 'Use Poisson for rare independent arrivals. If the rate varies during the day (rush hours), use a non-homogeneous Poisson process; if calls cluster, variance exceeds the mean and a negative binomial is better. The binomial is the right model when there is a fixed number of trials.',
+ [('Why is the variance equal to the mean?', 'Because the pmf has a single parameter; overdispersion (variance > mean) is a warning that independence or constant rate fails.'),
+  ('What is the distribution of the time between calls?', 'Exponential with mean 1/lambda.'),
+  ('How do you test the Poisson assumption?', 'Compare the empirical variance with the mean and run a chi-square goodness-of-fit test on counts.')])
+
+D['curated-local-hilabs-entropy'] = T(
+ 'Shannon entropy of a discrete variable measures the average uncertainty (or information) in its distribution: H = -sum p_i log p_i.',
+ 'A target with half zeros and half ones is the hardest to predict (maximum entropy 1 bit); a target that is always the same has entropy 0. Decision trees pick splits that reduce this impurity.',
+ 'Here there are five 0s and three 1s out of 8, so p0 = 5/8, p1 = 3/8.\nH = -(5/8) log2(5/8) - (3/8) log2(3/8)\n  = 0.625 x 0.678 + 0.375 x 1.415 = 0.4238 + 0.5306 = 0.9544 bits.\nWith the natural log the value is 0.6616 nats; the base only rescales the unit.',
+ 'If a split separated the data into groups with proportions (4, 0) and (1, 3) of zeros and ones, the weighted entropy is 0.5 x 0 + 0.5 x 0.811 = 0.406, an information gain of 0.9544 - 0.406 = 0.548 bits.',
+ 'Entropy and Gini impurity behave similarly in trees; entropy penalises mixed nodes slightly more and costs a log to compute. For highly imbalanced targets entropy is low even though accuracy can look good, so pair it with precision-recall metrics.',
+ [('What is the maximum entropy for k classes?', 'log2 k bits, reached by the uniform distribution.'),
+  ('How does it relate to cross-entropy loss?', 'Cross-entropy H(p, q) = H(p) + KL(p || q), so minimising cross-entropy pushes q towards p.'),
+  ('What if a class has probability 0?', 'By convention 0 log 0 = 0.')])
+
+D['curated-local-hilabs-cbow'] = S('''CBOW (continuous bag of words) from word2vec predicts a target word from its surrounding context words.
+1. "It predicts the word in the middle": true, the centre word is the target.
+2. "It predicts the context": false, that describes skip-gram (centre word predicts the surrounding words).
+3. "It estimates the probability of a word occurring in a context": true, the model outputs P(word | context) through a softmax (or approximations such as negative sampling).
+4. "Its architecture uses a neural network": true, a shallow network with an embedding (projection) layer and an output layer.
+Statements 1, 3 and 4 are correct.
+
+**Answer: 1, 3 and 4**''',
+ wrong='"1, 2 and 3" and "All of these" include statement 2 (skip-gram); "2, 3 and 4" also includes it and omits statement 1.',
+ fast='CBOW = context in, word out; skip-gram = word in, context out.', traps='- Mixing up the direction of CBOW and skip-gram.')
+
+D['curated-local-hilabs-pca-lda'] = S('''- PCA finds orthogonal directions of maximum variance by a linear projection; it does not use class labels, so it is linear and unsupervised.
+- LDA finds linear directions that maximise between-class scatter relative to within-class scatter; it uses labels, so it is linear and supervised.
+Statement 1 ("PCA is nonlinear and LDA is linear") is false: PCA is linear (kernel PCA is the nonlinear extension). Statement 2 ("PCA is supervised and LDA is unsupervised") is reversed. Neither statement is correct.
+
+**Answer: None of these**''',
+ wrong='"1" and "2" and "Both" each include at least one false statement.', fast='PCA = unsupervised variance; LDA = supervised class separation; both are linear.', traps='- Calling PCA nonlinear because of its eigen-decomposition.')
+
+D['curated-local-hilabs-relu'] = S('''ReLU(x) = max(0, x).
+1. Piecewise linear: true (slope 0 for x < 0 and 1 for x > 0).
+2. Outputs x for positive input and 0 otherwise: true.
+3. Can output an exact zero: true (every negative input gives exactly 0, which is why ReLU networks have sparse activations).
+4. A linear activation function: false. It is not linear over the whole domain: ReLU(-1) + ReLU(1) = 1 but ReLU(-1 + 1) = ReLU(0) = 0, so additivity fails. It is nonlinear, which is what lets deep networks model nonlinear functions.
+Correct: 1, 2 and 3.
+
+**Answer: 1, 2 and 3**''',
+ wrong='Any option including statement 4 treats ReLU as linear.', fast='Piecewise linear is not the same as linear.', traps='- Saying ReLU is linear because each piece is linear.')
+
+D['curated-local-hilabs-auc'] = T(
+ 'ROC-AUC is the probability that a randomly chosen positive example receives a higher score than a randomly chosen negative example (ties count one half).',
+ 'AUC = 0.5 means random ranking; AUC = 1 is perfect ranking. AUC close to 0 means the model ranks almost every negative above every positive: it is systematically predicting the opposite.',
+ 'AUC = P(s(x+) > s(x-)) + 0.5 P(s(x+) = s(x-)). Flipping the scores (s -> -s) turns AUC into 1 - AUC.',
+ 'A model gives scores 0.9, 0.8 to two negatives and 0.2, 0.1 to two positives: every positive-negative pair is misordered, AUC = 0. Using 1 - score would give AUC = 1.',
+ 'A near-zero AUC usually signals a label or score-direction bug (positive class mapped to 0, sign convention reversed), or a model that has learned a spurious inverse relationship, for example leakage in train that reverses in test. It is not proof of overfitting. First check the label encoding and the score orientation.',
+ [('Is an AUC below 0.5 useful?', 'Yes: inverting the predictions gives 1 - AUC, but first find out why the ranking is inverted.'),
+  ('Does AUC depend on the threshold?', 'No, it measures ranking quality across all thresholds.'),
+  ('When is AUC misleading?', 'With heavy class imbalance, precision-recall curves are more informative.')])
+
+D['curated-local-hilabs-outliers'] = S('''Univariate outlier detection examines one variable at a time.
+1. Unusual combinations across all variables: that is multivariate detection (for example Mahalanobis distance); not the univariate method.
+2. Extreme values of a single variable: yes, that is the definition.
+3. Can use box plots: yes. Values beyond Q1 - 1.5 IQR or Q3 + 1.5 IQR are flagged; z-scores are another univariate rule.
+4. Reduces the contribution of potential outliers during training: that is a treatment (winsorising, robust loss such as Huber), not a detection method.
+The statements describing the detection method itself are 2 and 3.
+
+**Answer: 2 and 3**''', fast='Detection = find; treatment = reduce their effect.', traps='- Confusing detecting outliers with handling them.')
+
+D['web-ml-001'] = T(
+ 'The bias-variance trade-off decomposes expected prediction error into bias (systematic error from wrong assumptions), variance (sensitivity to the particular training sample) and irreducible noise.',
+ 'A too-simple model misses the pattern (high bias, underfits); a too-flexible model memorises noise (high variance, overfits). The aim is the complexity where validation error is lowest.',
+ 'For squared loss: E[(y - f_hat(x))^2] = Bias^2 + Variance + sigma^2, where Bias = E[f_hat(x)] - f(x) and Variance = E[(f_hat(x) - E[f_hat(x)])^2].',
+ 'Compare train and validation error. Train 20%, validation 22%: high bias (both high). Train 2%, validation 18%: high variance (large gap). Fix bias with richer features or capacity; fix variance with more data, regularisation, bagging or early stopping.',
+ 'Evaluate a classifier with a held-out (or grouped/time-split) test set, never the data used for tuning. Pick the metric from the cost of errors: accuracy for balanced classes, precision/recall/F1 or PR-AUC for imbalance, ROC-AUC for ranking, log loss or Brier score when probabilities matter. Use k-fold cross-validation for small data and report confidence intervals.',
+ [('How do learning curves help?', 'A gap that closes with more data indicates variance; two converged high-error curves indicate bias.'),
+  ('Does more data always help?', 'It helps variance but not bias.'),
+  ('How do you evaluate under class imbalance?', 'Use stratified splits, PR-AUC, recall at a precision target and threshold tuning.')])
+
+D['web-ml-002'] = T(
+ 'Regularisation constrains a model to reduce overfitting; metrics quantify performance; ablation studies remove components one at a time to measure their contribution.',
+ 'Penalties, noise (dropout) or early stopping stop the model from fitting noise. Ablations answer "does this feature, loss term or module actually matter?"',
+ 'L2: loss + lambda ||w||^2 shrinks weights (ridge, weight decay). L1: loss + lambda ||w||_1 gives sparse weights. Dropout multiplies activations by Bernoulli masks. Early stopping stops at the best validation loss. Increasing lambda raises bias and lowers variance.',
+ 'Ablation: remove the text-embedding feature block from a ranking model and retrain; if NDCG drops by 3 points on the same validation split, the block contributes about 3 points. Repeat with several seeds to see the noise level.',
+ 'Choose lambda with cross-validation. Use L1 for feature selection, L2 as the default, dropout for deep nets, augmentation when data is limited. Report metrics matched to the objective; keep preprocessing and model selection away from the final test set. In ablations, change one thing at a time, fix seeds and data splits, and compare against a baseline with confidence intervals.',
+ [('Why does L1 give sparsity?', 'The L1 ball has corners on the axes, so the optimum often lies on an axis (a coefficient is exactly zero).'),
+  ('What is weight decay versus L2?', 'Identical for plain SGD, different for adaptive optimisers such as Adam (use AdamW).'),
+  ('How do you avoid fooling yourself in ablations?', 'Use multiple seeds, a frozen split and report variance.')])
+
+D['web-ml-003'] = T(
+ 'Model selection is the process of choosing a model family and hyperparameters that give the best expected performance on future data under the deployment constraints.',
+ 'Start from the problem (task type, data size, features, interpretability, latency) and from a strong simple baseline, then add complexity only if validation shows a gain.',
+ 'Estimate generalisation error by cross-validation: CV error = (1/K) sum of validation losses. Compare candidates with the same folds and a paired test or confidence interval; penalised criteria (AIC, BIC) are alternatives for likelihood models.',
+ 'Tabular data with 50k rows: logistic regression baseline, then gradient boosted trees; trees win by 4 AUC points and meet the 20 ms latency; choose trees. Images or text: start from a pretrained neural network and fine-tune.',
+ 'Linear models: fast, interpretable, good with little data. Trees/boosting: best default for tabular data, handle nonlinearity and missing values. Deep learning: unstructured data and very large datasets. kNN or SVM: small data. Consider calibration, training cost, serving latency, maintainability and monitoring, not only accuracy.',
+ [('How do you avoid overfitting model selection?', 'Nested cross-validation or a final untouched test set.'),
+  ('When is a simple model better?', 'When data is small, noise is high, or explainability is mandatory.'),
+  ('How do you decide among close models?', 'Prefer the simpler or cheaper one within the confidence interval.')])
+
+D['web-ml-004'] = T(
+ 'Decision trees split the feature space with if-then rules; random forests average many decorrelated trees (bagging); XGBoost adds trees sequentially, each fitting the gradient of the loss (boosting).',
+ 'A single deep tree has low bias and high variance. Averaging many trees trained on bootstrap samples and random feature subsets cuts variance. Boosting instead builds a strong model from many weak shallow trees, each correcting the previous errors, which cuts bias.',
+ 'Tree split: choose the split maximising impurity decrease (Gini or entropy). Forest: f(x) = (1/B) sum f_b(x). Gradient boosting: F_m = F_(m-1) + eta h_m where h_m fits the negative gradient -dL/dF; XGBoost also uses the second derivative and regularises the objective with gamma T + 0.5 lambda ||w||^2 for T leaves.',
+ 'On a churn dataset: a single tree gets 0.74 AUC, a random forest 0.84, XGBoost 0.88 after tuning depth (4-6), learning rate (0.05) and subsampling. For a project deep dive, describe the data, leakage checks, validation split, feature importance (SHAP) and the business metric.',
+ 'Random forests: robust, little tuning, parallel, harder to overfit. XGBoost: usually the most accurate on tabular data but needs tuning (learning rate, depth, number of trees, regularisation, early stopping) and is more sensitive to label noise. Single trees: interpretable but unstable.',
+ [('Why do random forests decorrelate trees?', 'Bootstrap samples plus random feature subsets at each split.'),
+  ('What does the learning rate do in boosting?', 'Shrinks each tree contribution; smaller values need more trees but generalise better.'),
+  ('How do you explain the model?', 'Feature importance, partial dependence and SHAP values.')])
+
+D['web-ml-005'] = T(
+ 'XGBoost is a regularised gradient boosting library; depth and regularisation control how complex each tree is, while dropout (a neural-network technique, also available as DART in boosting) randomly drops units or trees during training.',
+ 'Deeper trees capture higher-order interactions but fit noise. Regularisation penalises large leaf weights and extra leaves. Dropout forces redundancy so no single unit or tree dominates.',
+ 'Objective: sum L(y_i, yhat_i) + sum_k [gamma T_k + 0.5 lambda ||w_k||^2]. Using a second-order Taylor expansion, the optimal leaf weight is w* = -G/(H + lambda) and the split gain is 0.5[G_L^2/(H_L + lambda) + G_R^2/(H_R + lambda) - G^2/(H + lambda)] - gamma. Dropout in networks: h = m * a / (1 - p) with m ~ Bernoulli(1 - p).',
+ 'Tuning: max_depth 3-8, eta 0.03-0.1, subsample and colsample 0.6-0.9, lambda 1-10, min_child_weight to avoid tiny leaves, early stopping on a validation set. If the training AUC is 0.99 but validation 0.85, reduce depth and raise lambda, gamma and min_child_weight.',
+ 'Shallow trees with many rounds generalise better than few deep trees. More regularisation lowers variance but can raise bias. Dropout helps deep nets and DART in boosting but slows training and complicates early stopping; classical boosting relies on shrinkage and subsampling instead.',
+ [('Why second-order information?', 'It gives a better approximation of the loss and the closed-form leaf weight.'),
+  ('What does gamma do?', 'The minimum gain required to make a split (a pruning threshold).'),
+  ('Is dropout used in XGBoost?', 'Only through the optional DART booster.')])
+
+D['web-ml-006'] = T(
+ 'A classifier is calibrated if among predictions with probability p, a fraction p are truly positive. Logistic regression models P(y = 1 | x) = sigmoid(w.x + b) and is usually reasonably calibrated.',
+ 'Ranking quality (AUC) and calibration are different: a model can rank perfectly yet output probabilities that are too extreme or too timid. Decisions based on expected cost need calibrated probabilities.',
+ 'Logistic regression minimises log loss: -(1/n) sum [y log p + (1 - y) log(1 - p)], giving gradient X^T(p - y)/n. Calibration diagnostics: reliability curve, Brier score (1/n) sum (p - y)^2, expected calibration error. Fixes: Platt scaling (a logistic fit on the scores) and isotonic regression, both fitted on held-out data.',
+ 'A boosted tree model outputs 0.9 for items that are positive only 70% of the time. Fit isotonic regression on a calibration split; the reliability curve moves onto the diagonal, and log loss drops although AUC is unchanged.',
+ 'Use Platt scaling for small calibration sets (few parameters) and isotonic for larger sets (more flexible, can overfit). Recalibrate after distribution shift and check calibration within segments. Unregularised logistic regression can be overconfident when classes are separable.',
+ [('Does calibration change AUC?', 'No, any monotone transformation preserves ranking.'),
+  ('Why logistic loss and not squared error?', 'Convex, gives a probabilistic interpretation as maximum likelihood.'),
+  ('How do you calibrate under class imbalance?', 'Calibrate on data with the deployment prevalence or correct the intercept for the sampling ratio.')])
+
+D['web-ml-007'] = T(
+ 'Overfitting: the model fits noise in the training data and does poorly on new data. Underfitting: the model is too simple to capture the signal, with high error even on the training set.',
+ 'Training error tells you whether the model can fit; the gap between training and validation error tells you whether it generalises.',
+ 'High bias: training error is high and close to validation error. High variance: training error low, validation error much higher. Regularisation adds a penalty lambda R(w) to the loss; early stopping stops at the minimum of validation loss.',
+ 'Training accuracy 99%, validation 82%: overfitting. Fixes: more data or augmentation, weight decay or dropout, a smaller model, early stopping, bagging, feature selection. Training 70%, validation 69%: underfitting. Fixes: a more expressive model, better features, longer training, a lower regularisation strength.',
+ 'Reducing variance often raises bias and the reverse; use validation curves to choose model complexity. Cross-validate on small datasets, use grouped or time-based splits to avoid leakage, and keep a final test set that is used once.',
+ [('How do you detect overfitting without a validation set?', 'You cannot reliably; use cross-validation or out-of-bag estimates.'),
+  ('Can a deep network overfit and still generalise?', 'Yes, large models can interpolate the training data and still generalise (double descent), but you should still monitor validation loss.'),
+  ('Which fix first?', 'Get more representative data and check for leakage before changing the model.')])
+
+D['web-ml-008'] = T(
+ 'Practical ML is the end-to-end work of defining the target and metric, building features, evaluating honestly and iterating; evaluation and feature engineering are the two levers with the highest return.',
+ 'Good features give a simple model most of its power; a good evaluation protocol makes sure improvements are real and will hold in production.',
+ 'Evaluation: split by the unit of generalisation (user, time), cross-validate, report mean and standard deviation. Feature engineering: scaling (z = (x - mu)/sigma), log transforms, one-hot or target encoding (fit on training folds only), interaction and aggregate features, text and time features.',
+ 'Predicting churn: aggregate each user\'s last 7, 30 and 90 day activity counts, recency and trend features, build them as of the prediction date to avoid leakage, validate on a later time window than training, and track AUC and recall at the top 10% scored users.',
+ 'Simple baselines first; feature work beats model swapping on tabular data. Watch leakage, train-serving skew and target encoding without folds. Choose metrics tied to business cost; check slice performance and calibration before deployment.',
+ [('What is data leakage?', 'Information from the future or the label that is unavailable at prediction time.'),
+  ('How do you encode high-cardinality categories?', 'Target encoding with out-of-fold statistics, hashing or embeddings.'),
+  ('How do you know a feature helps?', 'Ablate it on a fixed split with several seeds.')])
+
+D['web-ml-009'] = T(
+ 'Regularisation is any technique that reduces a model\'s variance at some cost in bias to improve generalisation: L1/L2 penalties, dropout, early stopping, data augmentation, ensembling, limiting depth or capacity.',
+ 'It restricts how freely the model can fit the training data, so it must find simpler explanations.',
+ 'L2 (ridge): minimise L + lambda ||w||^2, shrinking all weights smoothly (closed form (X^T X + lambda I)^(-1) X^T y). L1 (lasso): L + lambda ||w||_1 gives sparse solutions via soft thresholding. Elastic net combines both. From a Bayesian view L2 is a Gaussian prior and L1 a Laplace prior.',
+ 'With 1000 correlated features and 200 samples, ridge keeps all coefficients small and stable, lasso picks a sparse subset, elastic net handles groups of correlated features better. In a neural net, dropout 0.3 plus weight decay 1e-4 plus early stopping is a common recipe.',
+ 'Increase the strength when the validation gap is large; reduce when training error is high. Choose lambda by cross-validation on a log grid. L1 for feature selection and interpretability, L2 as default, dropout and augmentation for deep learning, early stopping always cheap and effective. Keep preprocessing inside the cross-validation loop.',
+ [('Why standardise features before L1/L2?', 'The penalty depends on coefficient scale.'),
+  ('Does regularisation help with underfitting?', 'No, it makes it worse.'),
+  ('Does batch normalisation regularise?', 'Slightly, through batch noise, but it is not a substitute.')])
+
+D['web-ml-010'] = T(
+ 'A support vector machine finds the maximum-margin separating hyperplane; the training cost depends on the solver and kernel, so there is no single complexity.',
+ 'Only the points on or inside the margin (support vectors) determine the boundary; the kernel trick lets a linear method work in a high-dimensional feature space implicitly.',
+ 'Primal: min 0.5 ||w||^2 + C sum xi_i subject to y_i(w.x_i + b) >= 1 - xi_i. Dual: max sum alpha_i - 0.5 sum alpha_i alpha_j y_i y_j K(x_i, x_j), 0 <= alpha_i <= C. Kernel SVM training (libsvm, SMO) costs between O(n^2 d) and O(n^3) in the number of samples n and needs O(n^2) kernel storage; linear SVMs trained by coordinate descent or SGD cost about O(n d) per epoch. Prediction costs O(#support vectors x d).',
+ 'With n = 10^4 and an RBF kernel, training takes seconds to minutes; with n = 10^6 it is impractical, so use a linear SVM, a kernel approximation (Nystrom, random Fourier features) or gradient boosting.',
+ 'Kernel SVMs are strong on small and medium data with clear margins; linear SVMs on high-dimensional sparse data (text). C trades margin width against training errors; the RBF gamma controls the kernel width (large gamma overfits). Scale features.',
+ [('What does C do?', 'Large C penalises violations heavily (narrow margin, low bias, high variance).'),
+  ('Why is the dual useful?', 'It depends only on inner products, which enables kernels.'),
+  ('How do you get probabilities?', 'Platt scaling on the SVM scores.')])
+
+D['web-ml-011'] = T(
+ 'Hyperparameter tuning searches for settings that are not learned by training (learning rate, depth, regularisation strength, architecture) to maximise validation performance.',
+ 'Hyperparameters change the model class, so they must be selected on validation data separate from the final test set.',
+ 'Methods: grid search (exhaustive, cost grows exponentially), random search (Bergstra and Bengio: better coverage of important parameters), Bayesian optimisation (a surrogate such as a Gaussian process or TPE with an acquisition function like expected improvement), Hyperband/successive halving (early stop poor trials), population-based training.',
+ 'Tuning XGBoost with 100 trials: random search over eta (log-uniform 0.01-0.3), depth (3-10), subsample (0.5-1) with 5-fold CV and early stopping; refine around the best region with Bayesian optimisation or Optuna.',
+ 'Grid for 1-2 parameters, random search as the strong default, Bayesian when each evaluation is expensive, Hyperband when training curves allow early stopping. Use log scales for rates and regularisers, keep preprocessing in the CV pipeline, use nested CV or a separate test set, and set a compute budget.',
+ [('Why is random search better than grid?', 'Few hyperparameters matter, and random search tries more distinct values of each.'),
+  ('How do you avoid overfitting the validation set?', 'Limit the number of trials, use cross-validation or a final holdout.'),
+  ('What is early stopping in tuning?', 'Stopping poor configurations after a few epochs or trees.')])
+
+D['web-ml-012'] = T(
+ 'Logistic regression models the probability of a binary outcome with a sigmoid of a linear function and is trained by maximising the likelihood (minimising cross-entropy).',
+ 'The linear score w.x + b is the log-odds of the positive class; the sigmoid turns it into a probability and the decision boundary is a hyperplane.',
+ 'p = sigma(z) = 1/(1 + e^(-z)), z = w.x + b. Loss: L = -(1/n) sum [y log p + (1 - y) log(1 - p)]. Gradient: dL/dw = X^T (p - y)/n, dL/db = mean(p - y). The Hessian X^T diag(p(1 - p)) X is positive semi-definite, so the loss is convex. For linear regression, the normal equations are w = (X^T X)^(-1) X^T y, but QR or SVD is more stable than inverting X^T X.',
+ 'Features (x1, x2) = (hours studied, past score), weights (0.8, 0.05), bias -4: for x = (3, 60), z = 2.4 + 3 - 4 = 1.4, p = 0.80. Verify the gradient with a finite-difference check.',
+ 'Convex and well-calibrated, with interpretable coefficients (odds ratios e^w). Needs scaling for regularised or gradient-based fits, struggles with nonlinear boundaries unless you add features, and separable data drives weights to infinity unless regularised (L2).',
+ [('What is the decision boundary?', 'The hyperplane w.x + b = 0 (probability 0.5).'),
+  ('Why not squared error with a sigmoid?', 'The loss becomes non-convex and gradients vanish for confident mistakes.'),
+  ('How do you handle imbalance?', 'Class weights, resampling and threshold tuning.')])
+
+D['web-ml-013'] = T(
+ 'XGBoost builds trees sequentially, so boosting rounds cannot run in parallel, but it parallelises the work inside each tree: finding the best split across features.',
+ 'Round m needs the residual gradients of rounds 1 to m - 1, so rounds are inherently sequential. The expensive step in each round, scanning all features and thresholds to compute split gains, is data-parallel.',
+ 'For each node and feature it accumulates gradient and Hessian sums (G, H) over sorted values and evaluates the gain 0.5[G_L^2/(H_L + lambda) + G_R^2/(H_R + lambda) - (G_L + G_R)^2/(H_L + H_R + lambda)] - gamma. Pre-sorted column blocks, histogram-based (approximate) splits with bins and cache-aware access let different threads handle different features; distributed versions shard rows and all-reduce the histograms.',
+ 'With 100 features and 8 threads, each thread scans about 12 features per node. With the histogram method (tree_method = hist) the time per split search is O(bins) per feature after one pass to build histograms.',
+ 'Parallelism speeds each round but the number of rounds still sets the lower bound on time; use larger learning rates with fewer rounds, histogram or GPU training for big data, and column subsampling for extra speed.',
+ [('Is random forest parallel across trees?', 'Yes, trees are independent.'),
+  ('What is the histogram method?', 'Features are bucketed into bins so that split finding costs O(bins) instead of O(n).'),
+  ('How does LightGBM differ?', 'Leaf-wise growth and gradient-based sampling for further speed.')])
+
+D['web-ml-014'] = T(
+ 'Collaborative filtering recommends items using the behaviour of many users: users who agreed in the past tend to agree again; it needs no item content.',
+ 'Represent users and items from the interaction matrix. Neighbourhood methods compare users or items; matrix factorisation learns latent vectors whose dot product predicts the rating.',
+ 'User-based CF: r_hat(u, i) = mean_u + sum_v sim(u, v)(r_vi - mean_v) / sum |sim(u, v)|. Matrix factorisation: minimise sum over observed (u, i) of (r_ui - p_u.q_i)^2 + lambda(||p_u||^2 + ||q_i||^2), by ALS or SGD. For implicit feedback use weighted ALS or BPR loss with sampled negatives.',
+ 'Evaluation: split by time (train on the past, test on the future); metrics RMSE for ratings; for top-N ranking use precision@k, recall@k, NDCG, MAP and coverage/diversity; confirm with an online A/B test (click-through, retention).',
+ 'Item-based CF is stable and scales well; matrix factorisation generalises on sparse data; neural two-tower models handle side features and retrieval. Weaknesses: cold start (new users or items), popularity bias, sparsity. Use content features or a hybrid for cold start.',
+ [('How do you handle cold start?', 'Content-based features, popularity priors and exploration (bandits).'),
+  ('Why not random split for evaluation?', 'It leaks future behaviour; use temporal splits.'),
+  ('Implicit versus explicit feedback?', 'Implicit data has no true negatives, so use ranking losses.')])
+
+D['web-ml-015'] = T(
+ 'Bagging trains models in parallel on bootstrap resamples and averages them (reduces variance); boosting trains models sequentially, each focusing on the errors of the previous ones (reduces bias).',
+ 'Averaging many noisy but unbiased models cancels the noise. Boosting adds simple learners that correct mistakes, turning weak learners into a strong one.',
+ 'Bagging variance of an average of B models with correlation rho and variance sigma^2: rho sigma^2 + (1 - rho) sigma^2/B, so decorrelating (random forest) helps. Boosting (AdaBoost) weights w_i <- w_i exp(alpha [y != h(x)]) with alpha = 0.5 ln((1 - err)/err); gradient boosting fits residual gradients.',
+ 'Basic stats: sample mean estimates the population mean with standard error s/sqrt(n); a 95% interval is mean +- 1.96 SE; p-values measure the probability of data at least as extreme under the null; use t-tests for means and chi-square for counts.',
+ 'Bagging: robust, parallel, good for high-variance learners (deep trees). Boosting: higher accuracy but sensitive to noisy labels and outliers and needs tuning. Use bagging when the base model overfits, boosting when it underfits.',
+ [('Why does bagging not reduce bias?', 'The average of identically biased models has the same bias.'),
+  ('What is out-of-bag error?', 'Each tree is evaluated on the samples left out of its bootstrap, giving a free validation estimate.'),
+  ('Which is more prone to overfit noise?', 'Boosting.')])
+
+D['web-ml-016'] = T(
+ 'Collaborative filtering uses interaction patterns across users; content-based filtering recommends items similar to those a user liked, using item (and user) features.',
+ 'Collaborative: "people like you liked this". Content-based: "this is similar to what you liked".',
+ 'Content-based: score(u, i) = sim(profile_u, features_i) with cosine similarity, where profile_u is the average of features of liked items (TF-IDF vectors, embeddings). Collaborative: matrix factorisation r_ui ~ p_u.q_i. Hybrids combine both, e.g. a two-tower model with ID embeddings plus content features.',
+ 'A new movie with no ratings can be recommended through its genre and cast (content-based) but not by collaborative filtering; a user with many ratings but unusual taste gets better recommendations from collaborative signals.',
+ 'Content-based: handles cold-start items and is explainable but overspecialises (filter bubble). Collaborative: discovers surprising items and needs no features, but suffers from cold start and sparsity and has popularity bias. In practice use hybrids and evaluate offline on temporal splits then online.',
+ [('How to handle a new user?', 'Onboarding questions, popularity and content-based recommendations.'),
+  ('What is serendipity?', 'Useful recommendations the user would not have found by similarity alone.'),
+  ('Which scales better?', 'Item-based or factorised models with approximate nearest neighbour retrieval.')])
+
+D['web-ml-017'] = T(
+ 'Bias-variance describes error sources, calibration whether predicted probabilities match observed frequencies, and model drift the degradation of a deployed model as data or relationships change.',
+ 'A model can be accurate when deployed and gradually become wrong as users, markets or data pipelines change, even with no code change.',
+ 'Bias-variance: error = bias^2 + variance + noise. Calibration: reliability curve, Brier score. Drift: covariate shift (P(x) changes), label shift (P(y) changes), concept drift (P(y|x) changes). Detect with PSI = sum (a_i - e_i) ln(a_i/e_i), the KS test or KL divergence on features and predictions, and with delayed-label performance monitoring.',
+ 'A fraud model\'s PSI on transaction amount exceeds 0.25 and its precision falls from 0.8 to 0.6 within a month; actions are alerting, investigating pipeline changes, retraining on recent data and recalibrating.',
+ 'Monitor inputs, outputs and (when labels arrive) metrics by segment; retrain on a schedule or by trigger; keep a champion-challenger setup and a rollback plan. Recalibrate more often than you retrain; use sliding or weighted windows to favour recent data.',
+ [('Covariate shift versus concept drift?', 'Inputs change versus the relationship between input and label changes; only the latter needs new labels to detect.'),
+  ('How do you monitor without labels?', 'Track input and score distributions and proxy metrics.'),
+  ('Retrain how often?', 'Based on drift speed and cost, validated by backtests.')])
+
+D['web-ml-018'] = T(
+ 'Data leakage is the use of information at training time that will not be available at prediction time; missing data handling and loss functions are the other two topics to master.',
+ 'Leakage makes offline metrics look excellent and production results poor. Typical sources: future data in features, target-derived features, duplicates across splits, preprocessing fitted on the full dataset.',
+ 'Missingness types: MCAR, MAR, MNAR. Handling: indicators plus imputation (mean, median, model-based), tree models with native handling; fit imputers on training folds only. Losses: squared error (mean), absolute error (median), Huber (robust), cross-entropy for classification, hinge for margins, focal loss for imbalance; the loss defines which statistic the model estimates.',
+ 'A churn feature "days since last cancellation request" is computed after the label date: leakage. Fix by building every feature as of the prediction timestamp and splitting by time and by customer.',
+ 'Always split first, then fit transformations on the training set. Add a missing indicator when missingness is informative. Choose the loss to match the business cost (asymmetric costs may need a custom loss), and evaluate with metrics that match deployment.',
+ [('How do you detect leakage?', 'Suspiciously high scores, a single dominant feature, importance of ID-like or time-like features.'),
+  ('Mean versus median imputation?', 'Median is robust to outliers; model-based imputation captures relationships.'),
+  ('Why MSE versus MAE?', 'MSE targets the mean and punishes outliers; MAE targets the median.')])
+
+D['web-ml-019'] = T(
+ 'The classification lifecycle runs from problem framing and labels through features, training, evaluation and deployment to monitoring; click-through-rate (CTR) modelling predicts the probability that a shown item is clicked.',
+ 'CTR is a calibrated binary-probability problem with extreme imbalance (1-5% positives), huge sparse categorical features and strict latency; the predicted probability is multiplied by bids or value in ranking.',
+ 'Model: p = sigma(f(x)) trained with log loss; common architectures are logistic regression with hashed crosses, factorisation machines, and deep models (Wide and Deep, DeepFM, DCN). Evaluate with AUC, log loss, calibration and, for ranking, NDCG; online lift in CTR and revenue.',
+ 'Pipeline: define impression and click logs; join features as of impression time; downsample negatives and correct the intercept (or recalibrate); validate on a later day; serve embeddings from a feature store with a 10 ms budget; monitor calibration by slice and position.',
+ 'Address position bias (add position as a training-only feature or use inverse propensity weighting), selection bias, cold start (content features, exploration), and delayed conversions. Retrieval (candidate generation) and ranking are separate stages with different goals and cost.',
+ [('Why is calibration important in CTR?', 'Probabilities are used in auction value computations, so bias directly changes revenue.'),
+  ('How do you handle imbalance?', 'Downsample negatives with a correction or use class-aware losses; keep calibration.'),
+  ('Offline versus online metrics?', 'AUC and log loss offline; A/B tests are the ground truth.')])
+
+D['web-ml-020'] = T(
+ 'KNN classifies by the majority label among the k nearest training points; ROC-AUC measures ranking quality; precision and recall describe positive-class errors; loss functions define what is optimised.',
+ 'KNN is a memory-based method with no training; metrics for classifiers should match error costs and class prevalence.',
+ 'Precision = TP/(TP + FP); recall = TP/(TP + FN); F1 = 2PR/(P + R). ROC-AUC = P(score of a random positive > score of a random negative). KNN uses a distance (Euclidean or cosine), prediction cost O(n d) per query without an index. Losses: log loss -[y log p + (1 - y) log(1 - p)], hinge max(0, 1 - y f), 0-1 loss (not differentiable).',
+ 'On 1% positives, a model that predicts all negatives gets 99% accuracy but zero recall. With TP = 40, FP = 10, FN = 60: precision 0.8, recall 0.4, F1 0.53; lowering the threshold raises recall and lowers precision.',
+ 'Use PR curves and PR-AUC for rare positives, ROC-AUC when classes are balanced or ranking matters, and pick the threshold from cost. KNN: scale features, choose k by cross-validation, curse of dimensionality hurts; use approximate nearest neighbour indexes for scale.',
+ [('Why is accuracy misleading?', 'It ignores class imbalance and error costs.'),
+  ('How does k affect KNN?', 'Small k means low bias and high variance; large k smooths the boundary.'),
+  ('Precision-recall trade-off?', 'Moving the threshold trades one for the other.')])
+
+D['web-ml-021'] = T(
+ 'A random forest averages many decision trees trained on bootstrap samples with random feature subsets; clustering groups unlabelled points by similarity (k-means, hierarchical, DBSCAN, Gaussian mixtures).',
+ 'Randomisation decorrelates trees so their average has low variance; clustering finds structure without labels, but the result depends on the distance, scaling and k.',
+ 'Random forest prediction: mean (or majority vote) of B trees; typical settings: mtry about sqrt(p) for classification, min leaf size, out-of-bag error as validation. k-means minimises sum over clusters of sum ||x - mu_k||^2 by alternating assignment and mean update (Lloyd). Choose k with the elbow method, silhouette score or gap statistic.',
+ 'Customer segmentation: standardise features, run k-means for k = 2..10, pick k by silhouette, profile segments by mean features, then use a random forest to predict segment membership or churn within each segment.',
+ 'Random forests: strong default, handle mixed features, give importances (beware bias towards high-cardinality features), cannot extrapolate. k-means: fast but assumes spherical similar-size clusters and is sensitive to initialisation (use k-means++); DBSCAN handles arbitrary shapes and noise; GMM gives soft assignments.',
+ [('Why random feature subsets?', 'To decorrelate trees.'),
+  ('How do you evaluate clustering?', 'Silhouette, stability under resampling and business usefulness.'),
+  ('k-means versus GMM?', 'GMM models covariance and soft assignment at a higher cost.')])
+
+out = Path(sys.argv[1] if len(sys.argv) > 1 else 'build/solutions/B_04.json')
+out.write_text(json.dumps(D, indent=1, ensure_ascii=False), encoding='utf-8')
+print(len(D))
