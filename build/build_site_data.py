@@ -153,6 +153,21 @@ def main():
     for path in sorted((ROOT/'build/solutions').glob('*.json')):
         for qid,text in json.loads(path.read_text(encoding='utf-8')).items():
             if qid in final and text.strip():final[qid]['solution']=text
+    # LeetCode-style harness (build/make_harness.py): starter signature + verified test cases.
+    harness_path=ROOT/'build/harness/harness.json'
+    harness=json.loads(harness_path.read_text(encoding='utf-8')) if harness_path.exists() else {}
+    for qid,h in harness.items():
+        q=final.get(qid)
+        if not q or q.get('checker'):continue
+        q['starter']=h['starter']
+        if h.get('cases'):q['checker']=dict(function=h['function'],params=h['params'],cases=h['cases'],samples=h['samples'],numpy=h.get('numpy',False),source='generated')
+    for q in final.values():
+        # Hand-written practice checks: name the parameters and treat the first cases as the visible examples.
+        ch=q.get('checker')
+        if ch and 'samples' not in ch:
+            sig=re.match(r'\s*def\s+\w+\((.*)\)',q.get('practice_signature',''))
+            ch['params']=[p.split('=')[0].split(':')[0].strip() for p in sig.group(1).split(',')] if sig else []
+            ch['samples']=min(2,len(ch['cases']))
     # Short sections appended to an existing solution (e.g. the practice-check interface).
     addenda=ROOT/'build/solution_addenda.json'
     if addenda.exists():

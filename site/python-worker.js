@@ -14,7 +14,41 @@ class _AtlasOutput(_atlas_io.StringIO):
         if self.tell() + len(s) > 65536:
             raise RuntimeError('Output limit exceeded (64 KB).')
         return super().write(s)
-def _atlas_execute(code, stdin, checker_json):
+import copy as _atlas_copy
+def _atlas_dec(v):
+    if isinstance(v, dict) and '__nd__' in v:
+        import numpy as np
+        return np.array(_atlas_dec(v['__nd__']), dtype=v.get('dtype'))
+    if isinstance(v, list):
+        return [_atlas_dec(x) for x in v]
+    if isinstance(v, dict):
+        return {k: _atlas_dec(x) for k, x in v.items()}
+    return v
+def _atlas_norm(v):
+    if type(v).__module__ == 'numpy':
+        v = v.tolist()
+    if isinstance(v, tuple):
+        v = list(v)
+    if isinstance(v, list):
+        return [_atlas_norm(x) for x in v]
+    if isinstance(v, dict):
+        return {k: _atlas_norm(x) for k, x in v.items()}
+    return v
+def _atlas_equal(a, b):
+    a, b = _atlas_norm(a), _atlas_norm(b)
+    if isinstance(a, bool) or isinstance(b, bool):
+        return a == b
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        return _atlas_math.isclose(a, b, rel_tol=1e-6, abs_tol=1e-8)
+    if isinstance(a, list) and isinstance(b, list):
+        return len(a) == len(b) and all(_atlas_equal(x, y) for x, y in zip(a, b))
+    if isinstance(a, dict) and isinstance(b, dict):
+        return a.keys() == b.keys() and all(_atlas_equal(a[k], b[k]) for k in a)
+    return a == b
+def _atlas_repr(v):
+    s = repr(_atlas_norm(v))
+    return s if len(s) <= 800 else s[:800] + ' …'
+def _atlas_execute(code, stdin, checker_json, mode):
     old_in, old_out, old_err = _atlas_sys.stdin, _atlas_sys.stdout, _atlas_sys.stderr
     out = _AtlasOutput()
     namespace = {'__name__': '__main__'}
@@ -23,33 +57,39 @@ def _atlas_execute(code, stdin, checker_json):
         _atlas_sys.stdout = _atlas_sys.stderr = out
         exec(compile(code, '<solution>', 'exec'), namespace)
         checker = _atlas_json.loads(checker_json)
-        if checker is None:
+        if checker is None or mode == 'script':
             return _atlas_json.dumps({'output': out.getvalue()})
         function = namespace.get(checker['function'])
         if not callable(function):
-            raise ValueError('Implement the function ' + checker['function'] + ' to run solution checks.')
-        failures = []
-        total = len(checker['cases'])
-        for i, case in enumerate(checker['cases']):
-            args = case.get('args', [])
-            got = function(*args)
-            expected = case['expected']
-            if checker.get('numpy'):
-                import numpy as np
-                try:
-                    equal = np.shape(got) == np.shape(expected) and np.allclose(got, expected, rtol=1e-5, atol=1e-7)
-                except (ValueError, TypeError):
-                    equal = False
-            elif checker.get('float'):
-                equal = isinstance(got, (int, float)) and _atlas_math.isclose(got, expected, rel_tol=1e-6, abs_tol=1e-8)
-            else:
-                equal = got == expected
-            if not equal:
-                failures.append('Case ' + str(i + 1) + ': input ' + repr(args)[:240] + '\\n  expected: ' + repr(expected)[:240] + '\\n  received: ' + repr(got)[:240])
-        summary = str(total - len(failures)) + '/' + str(total) + ' practice checks passed.'
-        if failures:
-            summary += '\\n\\n' + '\\n\\n'.join(failures[:5])
-        return _atlas_json.dumps({'output': summary, 'passed': not failures})
+            raise ValueError('Define the function ' + checker['function'] + '(...) to run the test cases.')
+        cases = checker['cases']
+        if mode == 'run':
+            cases = cases[:max(1, checker.get('samples') or len(cases))]
+        params = checker.get('params') or []
+        results, passed_count = [], 0
+        for i, case in enumerate(cases):
+            args = _atlas_dec(case.get('args', []))
+            expected = _atlas_dec(case['expected'])
+            buf = _AtlasOutput()
+            _atlas_sys.stdout = _atlas_sys.stderr = buf
+            got, error = None, None
+            try:
+                got = function(*_atlas_copy.deepcopy(args))
+                ok = _atlas_equal(got, expected)
+            except Exception:
+                ok, error = False, _atlas_traceback.format_exc().split('File "<solution>"', 1)[-1][-1500:]
+            finally:
+                _atlas_sys.stdout = _atlas_sys.stderr = out
+            passed_count += ok
+            row = {'case': i + 1, 'passed': ok, 'input': [[params[j] if j < len(params) else 'arg' + str(j + 1), _atlas_repr(a)] for j, a in enumerate(args)],
+                   'expected': _atlas_repr(expected), 'got': None if error else _atlas_repr(got), 'stdout': buf.getvalue()[:2000], 'error': error}
+            if mode == 'run':
+                results.append(row)
+            elif not ok:
+                results.append(row)
+                break   # like an online judge: report the first failing case
+        return _atlas_json.dumps({'mode': mode, 'total': len(checker['cases']) if mode == 'submit' else len(cases), 'passed_count': passed_count,
+                                  'results': results, 'passed': passed_count == len(cases) and not (mode == 'submit' and results), 'output': out.getvalue()})
     except BaseException:
         return _atlas_json.dumps({'error': out.getvalue() + _atlas_traceback.format_exc()})
     finally:
@@ -63,7 +103,7 @@ self.onmessage=async({data})=>{
   await ready;const start=performance.now();
   try{
     const execute=py.globals.get('_atlas_execute');
-    const result=JSON.parse(execute(data.code,data.stdin,JSON.stringify(data.checker||null)));execute.destroy();
+    const result=JSON.parse(execute(data.code,data.stdin,JSON.stringify(data.checker||null),data.mode||(data.checker?'submit':'script')));execute.destroy();
     postMessage({type:'result',id:data.id,...result,elapsed:performance.now()-start});
   }catch(e){postMessage({type:'result',id:data.id,error:e.message,elapsed:performance.now()-start})}
 };

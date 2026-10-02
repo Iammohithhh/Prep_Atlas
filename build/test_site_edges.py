@@ -28,10 +28,10 @@ with sync_playwright() as p:
     page.goto(BASE + '/#question/practice-stable-softmax')
     page.locator('#code-editor.ace_editor').wait_for()
     page.evaluate("editor.setValue('print(42)', -1)")
-    page.locator('#run-code').click()
+    page.evaluate("void runCode('script')")
     assert page.evaluate('initReject !== null'), 'The first worker must still be loading'
     # Restart in the same JS turn: rejection from the cancelled run settles later.
-    page.evaluate("stopWorker('Execution stopped.'); runCode(false)")
+    page.evaluate("stopWorker('Execution stopped.'); void runCode('script')")
     finish(page, 'Run complete')
     assert page.locator('#output').inner_text().strip() == '42'
     print('PASS: cancelled during cold startup; immediate restart completed', flush=True)
@@ -42,10 +42,10 @@ with sync_playwright() as p:
     finish(page, 'Stopped', timeout=20000)
     elapsed = time.monotonic() - started
     assert 9.5 <= elapsed < 16, elapsed
-    assert page.locator('#output').inner_text() == 'Time limit exceeded (10 seconds).'
+    assert page.locator('#output').inner_text().startswith('Time limit exceeded (10 seconds).')
     assert page.locator('#run-code').is_enabled()
     page.evaluate("editor.setValue('print(73)', -1)")
-    page.locator('#run-code').click()
+    page.evaluate("void runCode('script')")
     finish(page, 'Run complete')
     assert page.locator('#output').inner_text().strip() == '73'
     print(f'PASS: actual timeout after {elapsed:.2f}s and worker recovery', flush=True)
@@ -57,9 +57,9 @@ with sync_playwright() as p:
         page.locator('#code-editor.ace_editor').wait_for()
         page.evaluate('code => editor.setValue(code, -1)', references[exercise['id']])
         page.locator('#check-code').click()
-        finish(page, 'Practice checks passed', timeout=30000)
+        finish(page, 'Accepted', timeout=30000)
         n = len(exercise['checker']['cases'])
-        assert page.locator('#output').inner_text().startswith(f'{n}/{n} practice checks passed.')
+        assert f'{n} / {n} test cases passed' in page.locator('#output').inner_text()
         assert page.locator('[data-status]').input_value() == 'solved'
         cases += n
     print(f'PASS: all {len(practice)} browser reference solutions, {cases} cases', flush=True)

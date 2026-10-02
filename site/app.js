@@ -166,7 +166,7 @@ function renderQuestion(id) {
   const q=bank.questions.find(q=>q.id===id); if(!q){$('#main').innerHTML=intro('Question not found.','This link may belong to a different question bank.')+'<a href="#overview">Back to overview →</a>';return;}
   activeQuestion=q;
   const coding=q.type==='coding'||q.subsection==='ml-coding';
-  $('#main').innerHTML=`<a class="back-link" href="#${q.section}">← Back to ${esc(sections[q.section]?.name||'questions')}</a><div class="eyebrow">${esc(sections[q.section]?.name)} / ${esc(human(q.subsection))}</div><h1 class="detail-title">${esc(q.title)}</h1><div class="detail-meta"><span class="pill ${q.difficulty}">${q.difficulty==='hard'?'Hard':'Easy / Medium'}</span>${qCompanies(q).map(c=>`<span class="pill">${esc(c)}</span>`).join('')}${statusSelect(q)}</div><div class="detail-grid ${coding?'':'reading'}"><div class="detail-panel"><div class="tabs" role="tablist" aria-label="Question details"><button role="tab" aria-selected="true" id="tab-problem" aria-controls="detail-content" class="active" data-tab="problem">Problem</button><button role="tab" aria-selected="false" id="tab-approach" aria-controls="detail-content" data-tab="approach">Approach</button><button role="tab" aria-selected="false" id="tab-solution" aria-controls="detail-content" data-tab="solution">Solution${q.solution?'':' <span class="muted">(soon)</span>'}</button><button role="tab" aria-selected="false" id="tab-notes" aria-controls="detail-content" data-tab="notes">My notes</button></div><div id="detail-content" class="detail-content prose" role="tabpanel" aria-labelledby="tab-problem">${questionBody(q)}</div></div><div class="detail-side">${coding?`<div class="detail-panel"><div class="editor-head"><strong>Python 3.12</strong><span class="muted">NumPy included · browser execution</span></div><div id="code-editor" class="editor" aria-label="Python code editor"></div><div class="runner-controls"><button id="run-code" class="primary">▶ Run</button>${q.checker?'<button id="check-code">✓ Check solution</button>':''}<button id="stop-code" hidden>■ Stop</button><button id="reset-code" title="Restore starter code">↺ Reset</button><span id="runtime-status" class="runtime-label">Ready when you are</span></div><div class="console"><label for="stdin">Standard input</label><textarea id="stdin" spellcheck="false" placeholder="Input for input() or sys.stdin">${esc(getProgress(q.id).stdin??q.default_stdin??'')}</textarea><div class="output-title"><span>Output</span><span id="execution-time"></span></div><pre id="output" aria-live="polite">Run your code to see output here.</pre></div><div class="runner-note">${q.checker?'Checks use additional practice cases. Passing them is useful feedback, not a guarantee of correctness for every input.':'No verified test suite is attached. Run code with your own input; use Approach to review the intended idea.'} Ctrl / ⌘ + Enter to run. Code and input save automatically.</div></div><div style="margin-top:16px">${sourceCard(q)}</div>`:sourceCard(q)+`<div class="panel"><h3>Make this pattern stick</h3><p class="subheading">Explain the approach without looking. Write down the step you missed, then mark the question for a revisit.</p><div class="badge-row">${(q.topics||[]).map(t=>`<a class="pill" href="#${q.section}?topic=${encodeURIComponent(t)}">${esc(human(t))}</a>`).join('')}</div></div>`}</div></div>${qnavBar(q)}`;
+  $('#main').innerHTML=`<a class="back-link" href="#${q.section}">← Back to ${esc(sections[q.section]?.name||'questions')}</a><div class="eyebrow">${esc(sections[q.section]?.name)} / ${esc(human(q.subsection))}</div><h1 class="detail-title">${esc(q.title)}</h1><div class="detail-meta"><span class="pill ${q.difficulty}">${q.difficulty==='hard'?'Hard':'Easy / Medium'}</span>${qCompanies(q).map(c=>`<span class="pill">${esc(c)}</span>`).join('')}${statusSelect(q)}</div><div class="detail-grid ${coding?'':'reading'}"><div class="detail-panel"><div class="tabs" role="tablist" aria-label="Question details"><button role="tab" aria-selected="true" id="tab-problem" aria-controls="detail-content" class="active" data-tab="problem">Problem</button><button role="tab" aria-selected="false" id="tab-approach" aria-controls="detail-content" data-tab="approach">Approach</button><button role="tab" aria-selected="false" id="tab-solution" aria-controls="detail-content" data-tab="solution">Solution${q.solution?'':' <span class="muted">(soon)</span>'}</button><button role="tab" aria-selected="false" id="tab-notes" aria-controls="detail-content" data-tab="notes">My notes</button></div><div id="detail-content" class="detail-content prose" role="tabpanel" aria-labelledby="tab-problem">${questionBody(q)}</div></div><div class="detail-side">${coding?`<div class="detail-panel"><div class="editor-head"><strong>Python 3.12</strong><span class="muted">NumPy included · browser execution</span></div><div id="code-editor" class="editor" aria-label="Python code editor"></div><div class="runner-controls"><button id="run-code" class="primary" title="${q.checker?'Run the example test cases':'Run your code'} (Ctrl / ⌘ + Enter)">▶ Run</button>${q.checker?'<button id="check-code" class="submit" title="Run every test case">Submit</button>':''}<button id="stop-code" hidden>■ Stop</button><button id="reset-code" class="quiet" title="Restore the starter code">↺ Reset</button><span id="runtime-status" class="runtime-label">Ready</span></div><div class="console"><div class="output-title"><span>${q.checker?'Test results':'Output'}</span><span id="execution-time"></span></div><div id="output" class="results" aria-live="polite">${q.checker?`Write your code, then press <strong>Run</strong> to test the ${q.checker.samples} example case${q.checker.samples===1?'':'s'} or <strong>Submit</strong> to run all ${q.checker.cases.length}.`:'Run your code to see its output here.'}</div>${q.checker?`<details class="custom-input"><summary>Custom input &amp; print debugging</summary>`:''}<label for="stdin">Standard input</label><textarea id="stdin" spellcheck="false" placeholder="Input for input() or sys.stdin">${esc(getProgress(q.id).stdin??q.default_stdin??'')}</textarea>${q.checker?'<button id="run-script" style="margin-top:8px">Run as script</button><p class="muted" style="font-size:13px;margin:6px 0 0">Runs your file top to bottom, so <code>print()</code> calls and <code>input()</code> work. Output appears above.</p></details>':''}</div><div class="runner-note">${q.checker?`${q.checker.source==='generated'?'Test cases are checked against the published solution.':'Hand-written practice checks.'} Passing them is strong evidence, not a proof of correctness.`:'No test cases are attached to this prompt. Run your code with your own input, and compare it with the Solution tab.'} Code and input save automatically.</div></div><div style="margin-top:16px">${sourceCard(q)}</div>`:sourceCard(q)+`<div class="panel"><h3>Make this pattern stick</h3><p class="subheading">Explain the approach without looking. Write down the step you missed, then mark the question for a revisit.</p><div class="badge-row">${(q.topics||[]).map(t=>`<a class="pill" href="#${q.section}?topic=${encodeURIComponent(t)}">${esc(human(t))}</a>`).join('')}</div></div>`}</div></div>${qnavBar(q)}`;
   const attachAnswer=()=>{if(!$('#check-answer'))return;$('#check-answer').onclick=()=>{
     const selected=$('input[name=answer]:checked'),numeric=$('#numeric-answer'); if(!selected&&!numeric?.value.trim()){toast(q.options?'Choose an option first.':'Enter an answer first.');return;}
     const chosen=numeric?numeric.value.trim():q.options[Number(selected.value)];
@@ -209,21 +209,26 @@ function renderSolution(q){
   };
 }
 function setupEditor(q) {
-  const starter=q.starter||'# Write your solution here.\n# Use input() / sys.stdin for input, or implement the given signature.\n\n';
-  const code=getProgress(q.id).code??starter;
+  const GENERIC='# Write your solution here.\n# Use input() / sys.stdin for input, or implement the given signature.\n\n';
+  const starter=q.starter||GENERIC;
+  // Saved code that is only the old placeholder gets the real starter instead.
+  const saved=getProgress(q.id).code;
+  const code=saved&&saved.trim()&&saved!==GENERIC?saved:starter;
   if(window.ace){
     ace.config.set('basePath','vendor');editor=ace.edit('code-editor');editor.session.setMode('ace/mode/python');editor.session.setUseWorker(false);editor.setOptions({fontSize:'12px',showPrintMargin:false,tabSize:4,useSoftTabs:true,wrap:true});editor.setValue(code,-1);setEditorTheme();
-    editor.on('change',()=>save(q.id,{code:editor.getValue()}));editor.commands.addCommand({name:'run',bindKey:{win:'Ctrl-Enter',mac:'Command-Enter'},exec:()=>runCode(false)});
+    editor.on('change',()=>save(q.id,{code:editor.getValue()}));editor.commands.addCommand({name:'run',bindKey:{win:'Ctrl-Enter',mac:'Command-Enter'},exec:()=>runCode('run')});
   }else{const ta=document.createElement('textarea');ta.className='editor';ta.setAttribute('aria-label','Python code');ta.value=code;$('#code-editor').replaceWith(ta);ta.id='code-editor';editor={getValue:()=>ta.value,setValue:v=>{ta.value=v},destroy:()=>{}};ta.oninput=()=>save(q.id,{code:ta.value});}
   $('#stdin').oninput=e=>save(q.id,{stdin:e.target.value});
-  $('#run-code').onclick=()=>runCode(false);if($('#check-code'))$('#check-code').onclick=()=>runCode(true);
+  $('#run-code').onclick=()=>runCode('run');
+  if($('#check-code'))$('#check-code').onclick=()=>runCode('submit');
+  if($('#run-script'))$('#run-script').onclick=()=>runCode('script');
   $('#stop-code').onclick=()=>stopWorker('Execution stopped.');
   $('#reset-code').onclick=()=>{editor.setValue(starter,-1);save(q.id,{code:starter});toast('Starter code restored.');};
 }
 function setEditorTheme(){if(editor?.setTheme)editor.setTheme(`ace/theme/${isDark()?'tomorrow_night':'tomorrow'}`)}
 function isDark(){const t=document.documentElement.dataset.theme;return t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches)}
 function runtime(message){if($('#runtime-status'))$('#runtime-status').textContent=message;}
-function busy(on){for(const s of ['#run-code','#check-code','#reset-code'])if($(s))$(s).disabled=on;if($('#stop-code'))$('#stop-code').hidden=!on;}
+function busy(on){for(const s of ['#run-code','#check-code','#run-script','#reset-code'])if($(s))$(s).disabled=on;if($('#stop-code'))$('#stop-code').hidden=!on;}
 function prepareWorker() {
   if(workerReady)return workerReady;
   worker=new Worker('python-worker.js');const thisWorker=worker;
@@ -234,24 +239,47 @@ function prepareWorker() {
   });
   return workerReady;
 }
-async function runCode(check) {
+async function runCode(mode) {
   if(job||!activeQuestion||!editor)return;
-  const q=activeQuestion,code=editor.getValue(),stdin=$('#stdin').value;
-  const token={};window.currentRun=token;busy(true);runtime('Loading Python…');$('#output').textContent='Starting Python. The first run loads the local runtime…';
+  const q=activeQuestion,code=editor.getValue(),stdin=$('#stdin')?.value||'';
+  if(mode!=='script'&&!q.checker)mode='script';
+  const token={};window.currentRun=token;busy(true);runtime('Loading Python…');
+  const out=$('#output');out.className='results';out.textContent='Starting Python. The first run downloads the runtime (about 24 MB)…';
   save(q.id,{code,stdin,status:statusOf(q.id)==='new'?'attempted':statusOf(q.id)});
   try{
     try{await prepareWorker()}catch(e){throw new Error(`Python couldn't start (${e.message}).\n\nReload the page with Ctrl + Shift + R (Cmd + Shift + R on Mac), then press Run again. If it keeps failing, try another browser.`)}
     if(window.currentRun!==token||activeQuestion?.id!==q.id)return;
-    runtime('Running…');$('#output').textContent=check?'Checking practice cases…':'Running…';
+    runtime(mode==='submit'?'Submitting…':'Running…');out.textContent=mode==='submit'?`Running all ${q.checker.cases.length} test cases…`:mode==='run'?'Running the example cases…':'Running…';
     const result=await new Promise((resolve,reject)=>{
-      const id=Date.now()+Math.random();job={id,resolve,reject};runTimeout=setTimeout(()=>stopWorker('Time limit exceeded (10 seconds).'),10000);
-      worker.postMessage({id,code,stdin,checker:check?q.checker:null});
+      const id=Date.now()+Math.random();job={id,resolve,reject};runTimeout=setTimeout(()=>stopWorker('Time limit exceeded (10 seconds). Check for an infinite loop, or a solution that is too slow for the input size.'),10000);
+      worker.postMessage({id,code,stdin,checker:mode==='script'?null:q.checker,mode});
     });
     if(window.currentRun!==token||activeQuestion?.id!==q.id)return;
-    $('#output').textContent=result.error?result.error:result.output||'(No output)';$('#execution-time').textContent=`${result.elapsed.toFixed(0)} ms`;
-    if(result.passed!==undefined){if(result.passed){save(q.id,{status:'solved'});document.querySelectorAll(`[data-status="${CSS.escape(q.id)}"]`).forEach(s=>s.value='solved');runtime('Practice checks passed');toast('Practice checks passed. Marked solved.');if(!$('.console .next-cta'))$('#output').insertAdjacentHTML('afterend',nextCta(q));}else runtime('Review failing cases');}else runtime(result.error?'Execution error':'Run complete');
-  }catch(e){if(window.currentRun===token){if(activeQuestion?.id===q.id&&$('#output')){$('#output').textContent=e.message;runtime('Ready to retry');}if(worker){worker.terminate();worker=null;}workerReady=null;}
+    $('#execution-time').textContent=`${result.elapsed.toFixed(0)} ms`;
+    if(result.error){out.className='results is-error';out.textContent=result.error;runtime('Error');return;}
+    if(mode==='script'){out.className='results';out.textContent=result.output||'(No output. Did you call your function and print the result?)';runtime('Run complete');return;}
+    out.innerHTML=renderResults(q,result,mode);
+    if(mode==='submit'&&result.passed){
+      save(q.id,{status:'solved'});document.querySelectorAll(`[data-status="${CSS.escape(q.id)}"]`).forEach(s=>s.value='solved');
+      runtime('Accepted');toast('Accepted. Marked as solved.');out.insertAdjacentHTML('beforeend',nextCta(q));
+    }else runtime(result.passed?'Examples passed':mode==='submit'?'Wrong answer':'Some examples failed');
+  }catch(e){if(window.currentRun===token){if(activeQuestion?.id===q.id&&$('#output')){out.className='results is-error';out.textContent=e.message;runtime('Ready to retry');}if(worker){worker.terminate();worker=null;}workerReady=null;}
   }finally{if(window.currentRun===token){busy(false);window.currentRun=null;}}
+}
+function caseCard(r,label){
+  const field=(name,val,cls='')=>`<div class="case-field ${cls}"><div class="case-label">${name}</div><pre>${esc(val)}</pre></div>`;
+  return `<div class="case ${r.passed?'pass':'fail'}"><div class="case-head"><span class="case-mark" aria-hidden="true">${r.passed?'✓':'✗'}</span>${esc(label||'Case '+r.case)}<span class="case-verdict">${r.passed?'Passed':r.error?'Error':'Wrong answer'}</span></div>`+
+    field('Input',r.input.map(([n,v])=>`${n} = ${v}`).join('\n'))+
+    (r.error?field('Error',r.error,'is-error'):field('Your output',r.got??'None'))+field('Expected',r.expected)+
+    (r.stdout?field('Printed (stdout)',r.stdout):'')+`</div>`;
+}
+function renderResults(q,res,mode){
+  if(mode==='run'){
+    const head=`<div class="verdict ${res.passed?'ok':'bad'}">${res.passed?'All examples passed':'Some examples failed'} <span>${res.passed_count} / ${res.total} example cases passed</span></div>`;
+    return head+res.results.map(r=>caseCard(r,'Example '+r.case)).join('')+(res.passed?`<p class="muted" style="margin:10px 0 0">Now press <strong>Submit</strong> to run all ${q.checker.cases.length} test cases.</p>`:'');
+  }
+  if(res.passed)return `<div class="verdict ok">Accepted <span>${res.total} / ${res.total} test cases passed</span></div>`;
+  return `<div class="verdict bad">Wrong answer <span>${res.passed_count} / ${res.total} test cases passed</span></div>${res.results.map(r=>caseCard(r,'First failing case (#'+r.case+')')).join('')}`;
 }
 function stopWorker(message='') {
   if(worker)worker.terminate();worker=null;workerReady=null;clearTimeout(runTimeout);clearTimeout(loadTimeout);
